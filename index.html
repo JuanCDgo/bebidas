@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0D0E12">
+  <title>Maldito Flanders · Delivery de Bebidas, Promos & Kiosco</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <script src="qrcode.min.js"></script>
+  <script>
+    if (typeof QRCode === 'undefined') {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
+
+  <style>
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    body {
+      background-color: #090A0D;
+      color: #F4F4F5;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .modal-backdrop { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    @keyframes pulseSubtle {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    .pulse-cart { animation: pulseSubtle 2s infinite ease-in-out; }
+    @media print {
+      body * { visibility: hidden; }
+      #printableQrArea, #printableQrArea * { visibility: visible; }
+      #printableQrArea { position: fixed; inset: 0; background: white; color: black; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center items-start sm:py-4">
+
+  <!-- ========================================================= -->
+  <!-- VISTA PÚBLICA DE PASE DE FIDELIDAD (?pass=ID)             -->
+  <!-- ========================================================= -->
+  <div id="publicPassView" class="hidden min-h-screen w-full max-w-md mx-auto p-5 flex flex-col items-center justify-center">
+    <div class="w-full bg-[#14161D] border-2 border-amber-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5 relative overflow-hidden">
+      <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-amber-400 to-rose-500 p-0.5 mx-auto shadow-lg">
+        <div id="passLogoBox" class="w-full h-full bg-[#14161D] rounded-2xl flex items-center justify-center overflow-hidden text-4xl">🍺</div>
+      </div>
+      <div>
+        <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black uppercase tracking-widest">Club de Beneficios</span>
+        <h1 id="passBusinessName" class="text-2xl font-black text-white mt-2">Maldito Flanders</h1>
+        <p id="passClientName" class="text-sm font-bold text-rose-400 mt-0.5">Socio Frecuente</p>
+      </div>
+
+      <div class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-4">
+        <div class="flex items-center justify-between text-xs font-bold text-zinc-400 mb-3">
+          <span>SELLOS ACUMULADOS</span>
+          <span id="passStampsCounter" class="text-amber-400 font-black">0 / 6</span>
+        </div>
+        <div id="passStampsGrid" class="grid grid-cols-3 gap-2.5"></div>
+      </div>
+
+      <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 text-xs">
+        <p class="text-zinc-400 font-semibold uppercase text-[10px]">Premio al completar la tarjeta:</p>
+        <p id="passRewardText" class="text-amber-300 font-black text-sm mt-0.5">🎁 1 Bolsa de Hielo 3kg + Descuento Previa</p>
+        <p id="passMinAmountHint" class="text-[11px] text-zinc-400 mt-1">Sumás 1 sello en cada compra desde $15.000</p>
+      </div>
+
+      <div class="p-3 bg-white rounded-2xl inline-block mx-auto">
+        <div id="passQrBox" class="w-[140px] h-[140px] flex items-center justify-center"></div>
+      </div>
+
+      <button onclick="exitPublicPassView()" class="w-full py-3 bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black rounded-2xl text-xs shadow-lg transition">
+        🍹 Ir al Catálogo de Bebidas y Promos
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- APLICACIÓN PRINCIPAL                                      -->
+  <!-- ========================================================= -->
+  <div id="mainAppContainer" class="w-full max-w-lg bg-[#0D0E12] min-h-screen sm:min-h-[880px] sm:rounded-[34px] sm:shadow-2xl sm:border-[4px] sm:border-zinc-800 flex flex-col relative overflow-hidden pb-28">
+
+    <!-- HEADER PRINCIPAL -->
+    <header class="bg-[#14161D] text-white pt-4 px-4 pb-3.5 sticky top-0 z-30 border-b border-zinc-800/90 shadow-lg">
+      <!-- Top Status & Modo Dueño + Reloj -->
+      <div class="flex items-center justify-between text-[11px] pb-2 border-b border-zinc-800">
+        <div class="flex items-center gap-1.5 font-bold">
+          <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="headerStatusText" class="text-emerald-400 font-extrabold uppercase tracking-wider text-[10px]">Abierto · Delivery & Retiro</span>
+          <span class="text-zinc-600">·</span>
+          <span id="argClock" class="text-zinc-400 font-semibold text-[10px]">🇦🇷 --:-- hs</span>
+        </div>
+        <button 
+          onclick="toggleOwnerMode()" 
+          id="btnOwnerToggle"
+          class="px-2.5 py-0.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-extrabold text-[10px] border border-zinc-700 transition flex items-center gap-1"
+        >
+          <span>👨‍🍳</span>
+          <span id="ownerToggleLabel">Modo Dueño: OFF</span>
+        </button>
+      </div>
+
+      <!-- Identidad del Negocio y Botones de Acción Rápida -->
+      <div class="flex items-center justify-between mt-3 gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div onclick="openSettingsModal()" id="headerLogoContainer" class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 via-amber-500 to-rose-500 shadow-md flex-shrink-0 flex items-center justify-center text-2xl font-black overflow-hidden border border-amber-300/40 cursor-pointer">
+            <span class="select-none">🍺</span>
+          </div>
+          <div class="min-w-0">
+            <h1 id="headerBusinessName" class="text-lg font-black tracking-tight text-white leading-tight truncate">
+              Maldito Flanders
+            </h1>
+            <p id="headerSubtitle" class="text-[11px] text-amber-400 font-bold truncate mt-0.5">
+              Bebidas, Promos, Kiosco & Delivery 🛵
+            </p>
+          </div>
+        </div>
+
+        <!-- Botonera Superior -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <!-- Cobro QR Mostrador -->
+          <button 
+            onclick="openQrCobroModal()" 
+            class="px-2.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-amber-400 font-black text-[11px] flex items-center gap-1 border border-amber-500/30 shadow-sm active:scale-95 transition"
+            title="QR de Cobro Mercado Pago / Alias"
+          >
+            <span>📷 QR</span>
+          </button>
+
+          <!-- Panel de Cadetes (Moto 1 y Moto 2) -->
+          <button 
+            onclick="openMotoboysModal()" 
+            class="px-2.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-emerald-400 font-black text-[11px] flex items-center gap-1 border border-emerald-500/30 shadow-sm active:scale-95 transition relative"
+            title="Control de Repartidores (Moto 1 y Moto 2)"
+          >
+            <span>🛵 Motos</span>
+            <span id="activeMotosBadge" class="hidden w-2 h-2 rounded-full bg-emerald-400 absolute -top-0.5 -right-0.5"></span>
+          </button>
+
+          <!-- Tarjeta de Fidelidad -->
+          <button 
+            onclick="openLoyaltyModal()" 
+            class="w-8 h-8 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-rose-400 font-black text-xs flex items-center justify-center border border-rose-500/30 shadow-sm active:scale-95 transition"
+            title="Club de Fidelidad (Sellos)"
+          >
+            <span>⭐</span>
+          </button>
+
+          <!-- Afiche QR Vidriera -->
+          <button 
+            onclick="openFlyerQrModal()" 
+            class="w-8 h-8 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-black text-xs flex items-center justify-center border border-zinc-700 shadow-sm active:scale-95 transition"
+            title="Cartel QR para Mostrador o Redes"
+          >
+            <span>🪧</span>
+          </button>
+
+          <!-- Ajustes -->
+          <button 
+            onclick="openSettingsModal()" 
+            class="w-8 h-8 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center justify-center border border-zinc-700 shadow-sm active:scale-95 transition"
+            title="Ajustes del Negocio"
+          >
+            <span>⚙️</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Reglas Claras (Mínimo de compra, envío y sello) -->
+      <div class="mt-2.5 grid grid-cols-3 gap-1.5 text-center">
+        <div class="bg-[#0D0E12] border border-zinc-800 rounded-xl py-1 px-1.5">
+          <span class="block text-[9px] uppercase font-bold text-zinc-500">Mínimo Envío</span>
+          <span id="ruleMinOrderText" class="text-[11px] font-black text-amber-400">$7.000</span>
+        </div>
+        <div class="bg-[#0D0E12] border border-zinc-800 rounded-xl py-1 px-1.5">
+          <span class="block text-[9px] uppercase font-bold text-zinc-500">Costo Delivery</span>
+          <span id="ruleDeliveryFeeText" class="text-[11px] font-black text-emerald-400">$1.500</span>
+        </div>
+        <div onclick="openLoyaltyModal()" class="bg-[#0D0E12] border border-rose-500/30 rounded-xl py-1 px-1.5 cursor-pointer hover:border-rose-500">
+          <span class="block text-[9px] uppercase font-bold text-rose-400">⭐ Suma Sello</span>
+          <span id="ruleStampMinText" class="text-[11px] font-black text-white">Desde $15.000</span>
+        </div>
+      </div>
+
+      <!-- Panel Herramientas Rápidas Modo Dueño -->
+      <div id="ownerToolbar" class="hidden mt-3 pt-2.5 border-t border-amber-500/30 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-extrabold text-amber-300 flex items-center gap-1">
+            <span>👨‍🍳</span> Panel de Dueño Activo (Tocá cualquier precio o stock)
+          </span>
+          <button onclick="openNewProductModal()" class="px-2.5 py-1 bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black rounded-lg text-[11px] shadow-sm">
+            + Nuevo Producto
+          </button>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button onclick="copyFullWhatsAppPriceList()" class="py-1.5 px-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
+            <span>📋 Copiar Lista WA</span>
+          </button>
+          <button onclick="openBulkPriceModal()" class="py-1.5 px-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
+            <span>⚡ Aumentar %</span>
+          </button>
+          <button onclick="openMotoboysModal()" class="py-1.5 px-2 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
+            <span>🛵 Caja Motos</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- BUSCADOR Y FILTROS DE CATEGORÍAS STICKY -->
+    <div class="bg-[#0D0E12]/95 backdrop-blur-md px-4 pt-2.5 pb-2 sticky top-[140px] z-20 border-b border-zinc-800/80 space-y-2">
+      <!-- Buscador instantáneo -->
+      <div class="relative flex items-center">
+        <span class="absolute left-3.5 text-zinc-500 text-xs">🔍</span>
+        <input 
+          type="text" 
+          id="searchInput" 
+          oninput="handleSearchInput()" 
+          placeholder="Buscar fernet, smirnoff, birra, vaper, rasta, marlboro..." 
+          class="w-full pl-9 pr-8 py-2 bg-[#14161D] border border-zinc-800 rounded-xl text-xs font-semibold text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400"
+        >
+        <button id="btnClearSearch" onclick="clearSearch()" class="hidden absolute right-2.5 w-5 h-5 rounded-full bg-zinc-700 text-zinc-300 text-[10px] font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <!-- Carrusel de Categorías Principales -->
+      <div id="categoryChipsContainer" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5"></div>
+
+      <!-- Sub-filtros de Promos (Fernet / Vodka / Gin / Ron / Aperitivos / Vino) -->
+      <div id="promoSubfiltersContainer" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
+        <button onclick="setPromoSubfilter('all')" data-sub="all" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-400 text-zinc-950 shrink-0">Todas las Promos</button>
+        <button onclick="setPromoSubfilter('fernet')" data-sub="fernet" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0">🦅 Fernet</button>
+        <button onclick="setPromoSubfilter('vodka')" data-sub="vodka" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0">🍸 Smirnoff / Skyy / Vodka</button>
+        <button onclick="setPromoSubfilter('gin')" data-sub="gin" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0">🌿 Gin & Ginebra</button>
+        <button onclick="setPromoSubfilter('ron')" data-sub="ron" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0">🥃 Ron & Whisky</button>
+        <button onclick="setPromoSubfilter('aperitivo')" data-sub="aperitivo" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0">🍊 Gancia / Aperol / Jagger</button>
+        <button onclick="setPromoSubfilter('vino')" data-sub="vino" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0">🍷 Vino + Pritty / Coca</button>
+      </div>
+    </div>
+
+    <!-- LISTADO DE PRODUCTOS -->
+    <main id="catalogContainer" class="px-3.5 pt-3 space-y-4 flex-1"></main>
+
+    <!-- BARRA FLOTANTE DEL CARRITO -->
+    <div id="floatingCartBar" class="hidden fixed bottom-3 left-0 right-0 z-30 px-4 max-w-lg mx-auto">
+      <button 
+        onclick="openCartModal()" 
+        class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-rose-500 text-zinc-950 shadow-2xl flex items-center justify-between font-black pulse-cart border-2 border-white/20"
+      >
+        <div class="flex items-center gap-2.5">
+          <span id="cartBarCount" class="w-7 h-7 rounded-xl bg-zinc-950 text-amber-400 text-xs font-black flex items-center justify-center">0</span>
+          <div class="text-left">
+            <span class="block text-xs font-black leading-none text-zinc-950">Ver mi Pedido</span>
+            <span id="cartBarSubtext" class="block text-[10px] font-extrabold text-zinc-900 mt-0.5">Tocá para elegir envío o retiro</span>
+          </div>
+        </div>
+        <span id="cartBarTotal" class="text-base font-black text-zinc-950 bg-white/30 px-3 py-1 rounded-xl">$0</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 1: CARRITO DE COMPRAS, HIELO, VUELTO Y WHATSAPP     -->
+  <!-- ========================================================= -->
+  <div id="cartModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 modal-backdrop hidden">
+    <div class="bg-[#14161D] border border-zinc-800 text-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto no-scrollbar p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-2.5 border-b border-zinc-800">
+        <div>
+          <h3 class="text-base font-black text-white flex items-center gap-1.5">🛒 Tu Pedido en Maldito Flanders</h3>
+          <p class="text-[11px] text-zinc-400">Revisá tus bebidas y completá el envío</p>
+        </div>
+        <button onclick="closeCartModal()" class="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <!-- Items del Carrito -->
+      <div id="cartItemsList" class="space-y-2 max-h-52 overflow-y-auto pr-1"></div>
+
+      <!-- Atajo Inteligente: ¿Te olvidaste del Hielo? -->
+      <div class="bg-sky-950/30 border border-sky-500/30 rounded-2xl p-3 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-black text-sky-300">🧊 ¿Sumás Hielo a la previa en 1 toque?</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button onclick="quickAddIce('hie-01')" class="py-1.5 px-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-200 text-[10px] font-extrabold">+1kg ($2.000)</button>
+          <button onclick="quickAddIce('hie-02')" class="py-1.5 px-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-200 text-[10px] font-extrabold">+3kg ($6.000)</button>
+          <button onclick="quickAddIce('hie-03')" class="py-1.5 px-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-200 text-[10px] font-extrabold">+12kg ($12.000)</button>
+        </div>
+      </div>
+
+      <!-- Termómetro de Sello de Fidelidad ($15.000) -->
+      <div id="cartLoyaltyBanner" class="rounded-2xl p-3 border text-xs"></div>
+
+      <!-- Preferencia de Temperatura -->
+      <div>
+        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1.5">Temperatura de las bebidas</label>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" id="btnTempCold" onclick="setDrinkTemp('Bien Fría ❄️')" class="py-2 px-3 rounded-xl border text-xs font-black bg-sky-500 text-zinc-950 border-sky-400">❄️ Bien Fría</button>
+          <button type="button" id="btnTempNatural" onclick="setDrinkTemp('Al Natural 📦')" class="py-2 px-3 rounded-xl border text-xs font-bold bg-[#0D0E12] text-zinc-400 border-zinc-800">📦 Al Natural</button>
+        </div>
+      </div>
+
+      <!-- Modo de Entrega: Delivery vs Retiro -->
+      <div>
+        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1.5">¿Cómo recibís tu pedido?</label>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" id="btnModeDelivery" onclick="setDeliveryMode('delivery')" class="py-2.5 px-3 rounded-xl border text-xs font-black bg-amber-400 text-zinc-950 border-amber-400">🛵 Envío en Moto</button>
+          <button type="button" id="btnModeTakeaway" onclick="setDeliveryMode('takeaway')" class="py-2.5 px-3 rounded-xl border text-xs font-bold bg-[#0D0E12] text-zinc-400 border-zinc-800">🏃 Retiro en Local</button>
+        </div>
+      </div>
+
+      <!-- Alerta si no llega al mínimo de compra en Delivery ($7.000) -->
+      <div id="minOrderWarningBox" class="hidden bg-rose-950/60 border border-rose-500/50 rounded-2xl p-3 text-xs text-rose-200 font-bold"></div>
+
+      <!-- Datos del Cliente y Dirección -->
+      <div class="space-y-2.5 pt-1">
+        <input type="text" id="orderClientName" placeholder="Tu Nombre (Ej: Matías)" class="w-full px-3.5 py-2.5 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+        
+        <div id="deliveryAddressFields" class="space-y-2">
+          <input type="text" id="orderStreet" placeholder="Calle y Número (Ej: Av. San Martín 1450)" class="w-full px-3.5 py-2.5 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+          <input type="text" id="orderCrossStreets" placeholder="Entre calles / Piso / Referencia de la casa" class="w-full px-3.5 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+        </div>
+
+        <input type="text" id="orderNotes" placeholder="Aclaración opcional (Ej: Coca común, sabor del vaper o chocolate)" class="w-full px-3.5 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+      </div>
+
+      <!-- Forma de Pago y Cálculo de Vuelto para el Repartidor -->
+      <div class="space-y-2 pt-1 border-t border-zinc-800">
+        <label class="block text-[10px] font-bold uppercase text-zinc-400">Forma de Pago</label>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" id="btnPayCash" onclick="setPaymentMethod('cash')" class="py-2 px-3 rounded-xl border text-xs font-black bg-emerald-500 text-zinc-950 border-emerald-400">💵 Efectivo</button>
+          <button type="button" id="btnPayTransfer" onclick="setPaymentMethod('transfer')" class="py-2 px-3 rounded-xl border text-xs font-bold bg-[#0D0E12] text-zinc-400 border-zinc-800">💳 Transferencia</button>
+        </div>
+
+        <!-- Bloque Efectivo: ¿Con cuánto pagás? -->
+        <div id="cashChangeBlock" class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-3 space-y-2">
+          <label class="block text-[11px] font-bold text-zinc-300">¿Con cuánto abonás? (Para que la moto lleve cambio)</label>
+          <div class="flex gap-1.5">
+            <input type="number" id="cashPayWithInput" oninput="updateCartTotalsUI()" placeholder="Ej: 20000 (vacío = pago justo)" class="flex-1 px-3 py-1.5 rounded-xl bg-[#14161D] border border-zinc-700 text-xs font-bold text-white">
+            <button type="button" onclick="setQuickCash(0)" class="px-2.5 py-1.5 rounded-xl bg-zinc-800 text-[10px] font-bold text-zinc-300">Justo</button>
+            <button type="button" onclick="setQuickCash(20000)" class="px-2.5 py-1.5 rounded-xl bg-zinc-800 text-[10px] font-bold text-amber-400">$20k</button>
+            <button type="button" onclick="setQuickCash(50000)" class="px-2.5 py-1.5 rounded-xl bg-zinc-800 text-[10px] font-bold text-amber-400">$50k</button>
+          </div>
+          <p id="cashChangeResultText" class="text-[11px] font-extrabold text-emerald-400">✓ Abona con cambio justo</p>
+        </div>
+
+        <!-- Bloque Transferencia: Alias directo -->
+        <div id="transferAliasBlock" class="hidden bg-emerald-950/30 border border-emerald-500/30 rounded-2xl p-3 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] text-emerald-300 font-bold">Alias Mercado Pago / Banco:</span>
+            <button type="button" onclick="copyBusinessAlias()" class="px-2 py-0.5 bg-emerald-500 text-zinc-950 font-black rounded-lg text-[10px]">Copiar Alias</button>
+          </div>
+          <p id="cartDisplayAlias" class="font-mono font-black text-sm text-white">malditoflanders.mp</p>
+          <p class="text-[10px] text-emerald-300/80">Recordá enviar el comprobante por WhatsApp al confirmar el pedido.</p>
+        </div>
+      </div>
+
+      <!-- Resumen de Totales -->
+      <div class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-3.5 space-y-1 text-xs">
+        <div class="flex justify-between text-zinc-400">
+          <span>Subtotal bebidas y productos:</span>
+          <span id="cartSubtotalText" class="font-bold text-white">$0</span>
+        </div>
+        <div id="cartDeliveryRow" class="flex justify-between text-zinc-400">
+          <span>Envío en moto:</span>
+          <span id="cartDeliveryText" class="font-bold text-amber-400">$1.500</span>
+        </div>
+        <div class="flex justify-between text-sm font-black text-white pt-1.5 border-t border-zinc-800">
+          <span>TOTAL A PAGAR:</span>
+          <span id="cartFinalTotalText" class="text-amber-400 text-base">$0</span>
+        </div>
+      </div>
+
+      <!-- Botones Finales -->
+      <div class="space-y-2">
+        <button 
+          id="btnConfirmOrderWA"
+          onclick="sendOrderToWhatsApp()" 
+          class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-black rounded-2xl text-sm shadow-lg flex items-center justify-center gap-2 transition active:scale-95"
+        >
+          <span>📲 Enviar Pedido por WhatsApp</span>
+        </button>
+
+        <div class="flex items-center justify-between gap-2 pt-1">
+          <button onclick="clearCart()" class="text-[11px] text-zinc-500 hover:text-rose-400 font-bold">🗑️ Vaciar carrito</button>
+          <button onclick="dispatchCurrentCartToMotoboy()" class="text-[11px] text-amber-400 hover:underline font-bold">🛵 Asignar directo a Moto 1 / Moto 2</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 2: DESPACHO Y RENDICIÓN DE LOS 2 CADETES (MOTOS)    -->
+  <!-- ========================================================= -->
+  <div id="motoboysModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 modal-backdrop hidden">
+    <div class="bg-[#14161D] border border-zinc-800 text-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto no-scrollbar p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-2.5 border-b border-zinc-800">
+        <div>
+          <h3 class="text-base font-black text-white flex items-center gap-1.5">🛵 Control de Repartidores (Motos)</h3>
+          <p class="text-[11px] text-zinc-400">Seguimiento de viajes y rendición de efectivo por cadete</p>
+        </div>
+        <button onclick="closeMotoboysModal()" class="w-8 h-8 rounded-full bg-zinc-800 text-zinc-300 font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <!-- Tarjetas Resumen de Moto 1 y Moto 2 -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <!-- Moto 1 -->
+        <div class="bg-[#0D0E12] border border-emerald-500/40 rounded-2xl p-3 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span id="moto1TitleLabel" class="text-xs font-black text-emerald-400 truncate">🛵 Moto 1</span>
+            <span id="moto1TripsCount" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black">0 viajes</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-zinc-400 block">Efectivo en mano a rendir:</span>
+            <span id="moto1CashTotal" class="text-base font-black text-white">$0</span>
+          </div>
+          <div class="text-[10px] text-zinc-400 flex justify-between border-t border-zinc-800 pt-1">
+            <span>Envíos ($):</span>
+            <span id="moto1FeesTotal" class="font-bold text-amber-400">$0</span>
+          </div>
+          <button onclick="settleMotoboy(1)" class="w-full mt-1 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 rounded-xl text-[10px] font-black">
+            ✅ Rendir Caja Moto 1
+          </button>
+        </div>
+
+        <!-- Moto 2 -->
+        <div class="bg-[#0D0E12] border border-amber-500/40 rounded-2xl p-3 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span id="moto2TitleLabel" class="text-xs font-black text-amber-400 truncate">🛵 Moto 2</span>
+            <span id="moto2TripsCount" class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-black">0 viajes</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-zinc-400 block">Efectivo en mano a rendir:</span>
+            <span id="moto2CashTotal" class="text-base font-black text-white">$0</span>
+          </div>
+          <div class="text-[10px] text-zinc-400 flex justify-between border-t border-zinc-800 pt-1">
+            <span>Envíos ($):</span>
+            <span id="moto2FeesTotal" class="font-bold text-amber-400">$0</span>
+          </div>
+          <button onclick="settleMotoboy(2)" class="w-full mt-1 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 rounded-xl text-[10px] font-black">
+            ✅ Rendir Caja Moto 2
+          </button>
+        </div>
+      </div>
+
+      <!-- Formulario Rápido para Asignar Viaje a una Moto -->
+      <div class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-3.5 space-y-2.5">
+        <h4 class="text-xs font-black text-amber-400 uppercase tracking-wider">+ Registrar Envío que sale</h4>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" id="btnSelectMoto1" onclick="selectDispatchMoto(1)" class="py-2 rounded-xl border text-xs font-black bg-emerald-500 text-zinc-950 border-emerald-400">🛵 Moto 1</button>
+          <button type="button" id="btnSelectMoto2" onclick="selectDispatchMoto(2)" class="py-2 rounded-xl border text-xs font-bold bg-[#14161D] text-zinc-400 border-zinc-800">🛵 Moto 2</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="dispatchAddress" placeholder="Dirección / Cliente" class="px-3 py-2 rounded-xl bg-[#14161D] border border-zinc-800 text-xs font-semibold text-white">
+          <input type="number" id="dispatchAmount" placeholder="Total a cobrar ($)" class="px-3 py-2 rounded-xl bg-[#14161D] border border-zinc-800 text-xs font-bold text-white">
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <select id="dispatchPayType" class="flex-1 px-3 py-2 rounded-xl bg-[#14161D] border border-zinc-800 text-xs font-bold text-white">
+            <option value="cash">💵 Cobra en Efectivo (Rinde caja)</option>
+            <option value="transfer">💳 Ya pagó por Transferencia</option>
+          </select>
+          <button onclick="addMotoboyDelivery()" class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black rounded-xl text-xs shrink-0">
+            + Asignar Viaje
+          </button>
+        </div>
+      </div>
+
+      <!-- Historial de Viajes de la Noche -->
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[11px] font-bold uppercase text-zinc-400">Viajes Activos de la Noche</span>
+          <button onclick="clearAllMotoboyDeliveries()" class="text-[10px] text-rose-400 font-bold hover:underline">Limpiar todo</button>
+        </div>
+        <div id="motoboyDeliveriesList" class="space-y-1.5 max-h-52 overflow-y-auto pr-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 3: COBRO QR MOSTRADOR (DOBLE MOTOR CON FALLBACK)    -->
+  <!-- ========================================================= -->
+  <div id="qrCobroModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 modal-backdrop hidden">
+    <div class="bg-[#14161D] border border-zinc-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center relative">
+      <button onclick="closeQrCobroModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center text-sm font-bold">✕</button>
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-xl">💳</span>
+        <h3 class="text-base font-black text-white">QR de Cobro Mostrador</h3>
+      </div>
+      <p class="text-xs text-zinc-400 mb-4">Escaneá con Mercado Pago, MODO o cualquier billetera</p>
+
+      <div class="p-4 bg-white rounded-2xl shadow-inner flex items-center justify-center min-w-[190px] min-h-[190px]">
+        <div id="quickQrCobroContainer" class="flex items-center justify-center"></div>
+      </div>
+
+      <div class="mt-4 p-3 bg-[#0D0E12] border border-zinc-800 rounded-2xl w-full text-left">
+        <div class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Alias para transferir</div>
+        <div class="flex items-center justify-between gap-2 mt-0.5">
+          <span id="quickQrDisplayAlias" class="text-amber-400 font-mono font-extrabold text-sm truncate">malditoflanders.mp</span>
+          <button onclick="copyBusinessAlias()" class="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold rounded-lg border border-zinc-700">Copiar</button>
+        </div>
+        <div id="quickQrDisplayOwner" class="text-[11px] text-zinc-400 mt-1 font-medium">Titular: Maldito Flanders</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 4: CARTEL QR PARA VIDRIERA / REDES                  -->
+  <!-- ========================================================= -->
+  <div id="flyerQrModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 modal-backdrop hidden">
+    <div class="bg-[#14161D] border border-zinc-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center relative space-y-4">
+      <button onclick="closeFlyerQrModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center text-sm font-bold">✕</button>
+      
+      <div id="printableQrArea" class="bg-white text-zinc-900 p-5 rounded-3xl shadow-xl border-2 border-amber-400 w-full flex flex-col items-center">
+        <div id="flyerLogoBox" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 to-rose-500 flex items-center justify-center text-2xl font-black overflow-hidden mb-2">🍺</div>
+        <h3 id="flyerTitle" class="text-lg font-black text-zinc-950">Maldito Flanders</h3>
+        <p class="text-[11px] font-bold text-rose-600 uppercase tracking-wider mb-3">Escaneá y pedí tus bebidas por WhatsApp</p>
+        <div id="flyerQrContainer" class="w-[180px] h-[180px] flex items-center justify-center"></div>
+        <p id="flyerUrlText" class="text-[10px] font-mono text-zinc-500 mt-2 truncate max-w-[220px]"></p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 w-full">
+        <button onclick="copyCatalogLink()" class="py-2.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 font-bold text-xs rounded-xl border border-zinc-700">🔗 Copiar Link</button>
+        <button onclick="window.print()" class="py-2.5 bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black text-xs rounded-xl">🖨️ Imprimir Cartel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 5: CLUB DE FIDELIDAD (SELLOS CON PISO $15.000)      -->
+  <!-- ========================================================= -->
+  <div id="loyaltyModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 modal-backdrop hidden">
+    <div class="bg-[#14161D] border border-zinc-800 text-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto no-scrollbar p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-2.5 border-b border-zinc-800">
+        <div>
+          <h3 class="text-base font-black text-white flex items-center gap-1.5">⭐ Club Maldito Flanders</h3>
+          <p id="loyaltySubtitleRule" class="text-[11px] text-amber-400 font-bold">Cada compra desde $15.000 suma 1 sello</p>
+        </div>
+        <button onclick="closeLoyaltyModal()" class="w-8 h-8 rounded-full bg-zinc-800 text-zinc-300 font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <!-- Vista rápida de socios frecuentes (para el dueño y clientes) -->
+      <div class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-3.5 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-black text-rose-400">🎁 Premio al completar:</span>
+          <span id="loyaltyTargetBadge" class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-black">6 sellos</span>
+        </div>
+        <p id="loyaltyRewardDisplay" class="text-sm font-black text-white">1 Bolsa de Hielo 3kg Gratis + Descuento en Combo Previa</p>
+      </div>
+
+      <!-- Agregar / Buscar Cliente del Club -->
+      <div class="flex gap-2">
+        <input type="text" id="newMemberName" placeholder="Nombre del cliente (Ej: Lucas)" class="flex-1 px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white">
+        <input type="tel" id="newMemberPhone" placeholder="WhatsApp (opcional)" class="w-36 px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white">
+        <button onclick="addLoyaltyMember()" class="px-3.5 py-2 bg-amber-400 text-zinc-950 font-black rounded-xl text-xs shrink-0">+ Socio</button>
+      </div>
+
+      <div id="loyaltyMembersList" class="space-y-2.5 max-h-72 overflow-y-auto pr-1"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 6: CREAR / EDITAR PRODUCTO                          -->
+  <!-- ========================================================= -->
+  <div id="productModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 modal-backdrop hidden">
+    <div class="bg-[#14161D] border border-zinc-800 text-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-3.5">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+        <h3 id="productModalTitle" class="text-sm font-black text-white">Nuevo Producto / Promo</h3>
+        <button onclick="closeProductModal()" class="w-7 h-7 rounded-full bg-zinc-800 text-zinc-400 text-xs font-bold">✕</button>
+      </div>
+      <input type="hidden" id="editProductId">
+      <div>
+        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Categoría</label>
+        <select id="editProductCategory" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-bold text-white"></select>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Nombre del Producto o Promo</label>
+        <input type="text" id="editProductName" placeholder="Ej: Promo Fernet 750cc + 2 Cocas" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Precio (ARS $)</label>
+          <input type="number" id="editProductPrice" placeholder="Ej: 25000" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-black text-amber-400">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Sub-filtro (Si es Promo)</label>
+          <select id="editProductSub" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-bold text-white">
+            <option value="">General</option>
+            <option value="fernet">Fernet</option>
+            <option value="vodka">Vodka / Smirnoff / Skyy</option>
+            <option value="gin">Gin / Ginebra</option>
+            <option value="ron">Ron / Whisky</option>
+            <option value="aperitivo">Aperitivo / Gancia / Jagger</option>
+            <option value="vino">Vino</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Nota o Detalle (Opcional)</label>
+        <input type="text" id="editProductNote" placeholder="Ej: Aclarar sabor en el pedido" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs text-white">
+      </div>
+      <div class="pt-2 flex gap-2">
+        <button onclick="saveProductFromModal()" class="flex-1 py-2.5 bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black rounded-xl text-xs">Guardar Producto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 7: AUMENTO PORCENTUAL RÁPIDO POR CATEGORÍA          -->
+  <!-- ========================================================= -->
+  <div id="bulkPriceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 modal-backdrop hidden">
+    <div class="bg-[#14161D] border border-zinc-800 text-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+        <h3 class="text-sm font-black text-amber-400">⚡ Actualizar Precios por %</h3>
+        <button onclick="closeBulkPriceModal()" class="w-7 h-7 rounded-full bg-zinc-800 text-zinc-400 text-xs font-bold">✕</button>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">¿Qué categoría querés actualizar?</label>
+        <select id="bulkCategorySelect" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-bold text-white"></select>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Porcentaje de aumento (redondea a $100)</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="applyBulkIncrease(5)" class="py-2.5 rounded-xl bg-zinc-800 hover:bg-amber-400 hover:text-zinc-950 font-black text-xs border border-zinc-700 transition">+5%</button>
+          <button onclick="applyBulkIncrease(10)" class="py-2.5 rounded-xl bg-zinc-800 hover:bg-amber-400 hover:text-zinc-950 font-black text-xs border border-zinc-700 transition">+10%</button>
+          <button onclick="applyBulkIncrease(15)" class="py-2.5 rounded-xl bg-zinc-800 hover:bg-amber-400 hover:text-zinc-950 font-black text-xs border border-zinc-700 transition">+15%</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 8: AJUSTES DEL LOCAL, LOGO, MOTOS Y RESPALDOS       -->
+  <!-- ========================================================= -->
+  <div id="settingsModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 modal-backdrop hidden">
+    <div class="bg-[#14161D] border border-zinc-800 text-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto no-scrollbar p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+        <h3 class="text-base font-black text-white">⚙️ Configuración · Maldito Flanders</h3>
+        <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full bg-zinc-800 text-zinc-300 font-bold">✕</button>
+      </div>
+
+      <!-- Logo del Negocio -->
+      <div class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-3.5 flex items-center gap-3">
+        <div id="settingsLogoPreview" class="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center text-2xl overflow-hidden shrink-0 border border-amber-400/30">🍺</div>
+        <div class="flex-1 space-y-1.5">
+          <label class="block text-xs font-black text-white">Logo del Local</label>
+          <div class="flex gap-2">
+            <label class="px-3 py-1.5 bg-amber-400 text-zinc-950 font-black rounded-xl text-[11px] cursor-pointer">
+              📷 Subir Imagen
+              <input type="file" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+            </label>
+            <button onclick="removeBusinessLogo()" class="px-2.5 py-1.5 bg-zinc-800 text-zinc-300 font-bold rounded-xl text-[11px]">Quitar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos principales -->
+      <div class="space-y-2.5">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Nombre del Local</label>
+            <input type="text" id="setBusinessName" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-bold text-white">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">WhatsApp de Pedidos</label>
+            <input type="tel" id="setWhatsappPhone" placeholder="54911..." class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-bold text-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Subtítulo / Eslogan</label>
+          <input type="text" id="setBusinessSubtitle" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white">
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-amber-400 mb-1">Mín. Compra ($)</label>
+            <input type="number" id="setMinOrder" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-black text-amber-400">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-emerald-400 mb-1">Costo Envío ($)</label>
+            <input type="number" id="setDeliveryFee" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-black text-emerald-400">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-rose-400 mb-1">Mín. Sello ($)</label>
+            <input type="number" id="setStampMinAmount" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-black text-rose-400">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Alias Mercado Pago / CBU</label>
+            <input type="text" id="setPaymentAlias" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-mono font-bold text-amber-400">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Estado del Local</label>
+            <select id="setIsOpen" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-bold text-white">
+              <option value="true">🟢 Abierto para Pedidos</option>
+              <option value="false">🔴 Cerrado por hoy</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Nombres de los 2 Repartidores (Motos) -->
+        <div class="grid grid-cols-2 gap-2 pt-1 border-t border-zinc-800">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-emerald-400 mb-1">🛵 Nombre Moto 1</label>
+            <input type="text" id="setMoto1Name" placeholder="Ej: Moto 1 (Franco)" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-bold text-white">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-amber-400 mb-1">🛵 Nombre Moto 2</label>
+            <input type="text" id="setMoto2Name" placeholder="Ej: Moto 2 (Nahuel)" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-bold text-white">
+          </div>
+        </div>
+
+        <!-- Premio de Fidelidad -->
+        <div class="grid grid-cols-3 gap-2 pt-1 border-t border-zinc-800">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Sellos Meta</label>
+            <input type="number" id="setTargetStamps" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-bold text-white">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Premio al completar</label>
+            <input type="text" id="setRewardText" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white">
+          </div>
+        </div>
+      </div>
+
+      <button onclick="saveSettings()" class="w-full py-3 bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black rounded-2xl text-xs shadow-lg">
+        💾 Guardar Configuración
+      </button>
+
+      <!-- Exportar / Importar Respaldo JSON y Restaurar Catálogo -->
+      <div class="pt-2 border-t border-zinc-800 space-y-2">
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="exportBackupJSON()" class="py-2 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-[11px] font-bold border border-zinc-700">⬇️ Exportar Copia JSON</button>
+          <label class="py-2 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-[11px] font-bold border border-zinc-700 text-center cursor-pointer">
+            ⬆️ Importar Copia JSON
+            <input type="file" accept=".json" class="hidden" onchange="importBackupJSON(event)">
+          </label>
+        </div>
+        <button onclick="resetCatalogToOriginal()" class="w-full py-2 text-[11px] text-zinc-500 hover:text-rose-400 font-bold">
+          🔄 Restaurar los 336 productos originales de Maldito Flanders
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST DE NOTIFICACIÓN -->
+  <div id="toastBox" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl bg-amber-400 text-zinc-950 font-black text-xs shadow-2xl hidden items-center gap-2">
+    <span id="toastIcon">✅</span>
+    <span id="toastText">Guardado</span>
+  </div>
+
+  <script>
+    // =========================================================
+    // DATOS INICIALES REALES DE MALDITO FLANDERS
+    // =========================================================
+    const CATEGORIES = [{"id":"promos","name":"Promos de Bebida","icon":"🔥","waTitle":"🔥 PROMOS DE BEBIDA !"},{"id":"hielo","name":"Hielo","icon":"🧊","waTitle":"🧊 Hielo"},{"id":"cervezas","name":"Cervezas y Packs","icon":"🍻","waTitle":"🍻 Cerveza"},{"id":"botellas","name":"Botellas & Aperitivos","icon":"✨","waTitle":"✨ Botellas"},{"id":"vinos","name":"Vinos","icon":"🍷","waTitle":"🍷 Vino"},{"id":"whisky","name":"Whisky","icon":"🥃","waTitle":"🥃 Whisky"},{"id":"espumantes","name":"Espumantes & Sidra","icon":"🥂","waTitle":"🍾 Vinos espumantes / Champagne / Sidra"},{"id":"licores","name":"Licores","icon":"🍸","waTitle":"🍷 Licores"},{"id":"gaseosas","name":"Gaseosas & Speed","icon":"🍹","waTitle":"🍹 Gaseosas y Energizantes"},{"id":"hierbas","name":"Boutique & Botánicos","icon":"🍋","waTitle":"🍋 Boutique de hierbas"},{"id":"snacks","name":"Snacks & Papas","icon":"🍟","waTitle":"🍟 Snack [*consultar disponibilidad]"},{"id":"chocolates","name":"Chocolates & Alfajores","icon":"🍫","waTitle":"🍫 Chocolate [*consultar disponibilidad]"},{"id":"chicles","name":"Chicles & Caramelos","icon":"🍬","waTitle":"🍬 Chicles"},{"id":"postres","name":"Postres","icon":"🥄","waTitle":"🥄 Postres"},{"id":"vapers","name":"Vapers","icon":"💨","waTitle":"💨 Vapers"},{"id":"cigarrillos","name":"Cigarrillos & Varios","icon":"🚬","waTitle":"🚬 Cigarrillos y Varios"}];
+    const DEFAULT_PRODUCTS = [{"id":"prm-01","cat":"promos","sub":"fernet","name":"Promo Fernet 1lt + 2 Cocas 2,25L","price":35000,"available":true,"note":"Branca 1L + 2 Coca-Cola 2.25L"},{"id":"prm-02","cat":"promos","sub":"fernet","name":"Promo Fernet 750cc + Coca descartable 2,25L","price":23000,"available":true,"note":"Branca 750cc + 1 Coca 2.25L"},{"id":"prm-03","cat":"promos","sub":"fernet","name":"Promo Fernet 750cc + 2 Cocas descartables 1,5L","price":25000,"available":true,"note":"Branca 750cc + 2 Coca 1.5L"},{"id":"prm-04","cat":"promos","sub":"fernet","name":"Promo Fernet 450cc + Coca descartable 1,5L","price":17000,"available":true,"note":"Branca 450cc + 1 Coca 1.5L"},{"id":"prm-05","cat":"promos","sub":"fernet","name":"Promo Fernet Menta + Sprite 2,25L o Coca 2,25L","price":18000,"available":true,"note":"Aclarar Sprite o Coca en notas"},{"id":"prm-06","cat":"promos","sub":"vodka","name":"Promo Smirnoff + 2 Speed XL","price":16000,"available":true,"note":"Smirnoff clásico (Tropical +$500)"},{"id":"prm-06b","cat":"promos","sub":"vodka","name":"Promo Smirnoff Tropical + 2 Speed XL","price":16500,"available":true,"note":"Con Smirnoff Sabor Tropical"},{"id":"prm-07","cat":"promos","sub":"vodka","name":"Promo Smirnoff + 4 Speed 250cc","price":17500,"available":true,"note":"Con 4 latas Speed 250cc"},{"id":"prm-08","cat":"promos","sub":"vodka","name":"Promo Smirnoff + 2 Monster","price":16500,"available":true,"note":"Smirnoff clásico (Tropical +$500)"},{"id":"prm-08b","cat":"promos","sub":"vodka","name":"Promo Smirnoff Tropical + 2 Monster","price":17000,"available":true,"note":"Con Smirnoff Sabor Tropical"},{"id":"prm-09","cat":"promos","sub":"vodka","name":"Promo Smirnoff + Baggio 1L","price":13500,"available":true,"note":"Smirnoff clásico (Tropical +$500)"},{"id":"prm-09b","cat":"promos","sub":"vodka","name":"Promo Smirnoff Tropical + Baggio 1L","price":14000,"available":true,"note":"Con Smirnoff Sabor Tropical"},{"id":"prm-10","cat":"promos","sub":"vodka","name":"Promo Smirnoff + Paso de los Toros o Sprite 1,5L","price":14500,"available":true,"note":"Smirnoff clásico (Tropical +$500)"},{"id":"prm-10b","cat":"promos","sub":"vodka","name":"Promo Smirnoff Tropical + Paso de los Toros o Sprite 1,5L","price":15000,"available":true,"note":"Con Smirnoff Sabor Tropical"},{"id":"prm-11","cat":"promos","sub":"vodka","name":"Promo Smirnoff + 4 Red Bull","price":22500,"available":true,"note":"Smirnoff clásico (Tropical +$500)"},{"id":"prm-11b","cat":"promos","sub":"vodka","name":"Promo Smirnoff Tropical + 4 Red Bull","price":23000,"available":true,"note":"Con Smirnoff Sabor Tropical"},{"id":"prm-12","cat":"promos","sub":"vodka","name":"Promo Sernova + 2 Speed XL","price":13000,"available":true,"note":""},{"id":"prm-13","cat":"promos","sub":"vodka","name":"Promo Sernova + 2 Monster","price":14000,"available":true,"note":""},{"id":"prm-14","cat":"promos","sub":"vodka","name":"Promo Skyy + 2 Speed XL","price":16500,"available":true,"note":""},{"id":"prm-15","cat":"promos","sub":"vodka","name":"Promo Skyy Jungle + 2 Speed","price":17500,"available":true,"note":""},{"id":"prm-16","cat":"promos","sub":"vodka","name":"Promo Skyy + 2 Monster","price":17500,"available":true,"note":""},{"id":"prm-17","cat":"promos","sub":"vodka","name":"Promo Skyy Jungle + 2 Monster","price":18500,"available":true,"note":""},{"id":"prm-18","cat":"promos","sub":"vodka","name":"Promo Skyy + Sprite o Paso de los Toros 1,5L","price":15500,"available":true,"note":""},{"id":"prm-19","cat":"promos","sub":"vodka","name":"Promo Skyy + Baggio","price":14000,"available":true,"note":""},{"id":"prm-20","cat":"promos","sub":"vodka","name":"Promo Skyy + 4 Red Bull","price":22500,"available":true,"note":""},{"id":"prm-21","cat":"promos","sub":"vodka","name":"Promo Absolut + 4 Speed XL","price":37000,"available":true,"note":""},{"id":"prm-22","cat":"promos","sub":"vodka","name":"Promo Absolut + 4 Monster","price":38000,"available":true,"note":""},{"id":"prm-23","cat":"promos","sub":"vodka","name":"Promo Absolut + 4 Red Bull","price":38000,"available":true,"note":""},{"id":"prm-24","cat":"promos","sub":"ron","name":"Promo Ron Cayman + 2 Speed XL","price":11500,"available":true,"note":""},{"id":"prm-25","cat":"promos","sub":"ron","name":"Promo Ron Coco Bongo + 2 Speed XL","price":14500,"available":true,"note":""},{"id":"prm-26","cat":"promos","sub":"ron","name":"Promo Ron Coco Bongo + Coca 1,5L","price":13500,"available":true,"note":""},{"id":"prm-27","cat":"promos","sub":"ron","name":"Promo Ron Malibú + Baggio 1L","price":18000,"available":true,"note":""},{"id":"prm-28","cat":"promos","sub":"ron","name":"Promo Ron Malibú + Coca Cola 1,5L","price":19000,"available":true,"note":""},{"id":"prm-29","cat":"promos","sub":"ron","name":"Promo Ron Bacardi Peach Red + 2 Speed XL","price":21000,"available":true,"note":""},{"id":"prm-30","cat":"promos","sub":"ron","name":"Promo Bacardi + Coca 2,25L","price":28500,"available":true,"note":""},{"id":"prm-31","cat":"promos","sub":"gin","name":"Promo Ginebra + Sprite 2,25L","price":17500,"available":true,"note":""},{"id":"prm-32","cat":"promos","sub":"aperitivo","name":"Promo Ramazzotti + Paso de los Toros","price":12500,"available":true,"note":""},{"id":"prm-33","cat":"promos","sub":"aperitivo","name":"Promo Gancia + Sprite 2,25L","price":14500,"available":true,"note":""},{"id":"prm-34","cat":"promos","sub":"aperitivo","name":"Promo Gancia + Sprite 1,5L","price":13500,"available":true,"note":""},{"id":"prm-35","cat":"promos","sub":"aperitivo","name":"Promo Aperol + Baggio","price":14200,"available":true,"note":""},{"id":"prm-36","cat":"promos","sub":"aperitivo","name":"Promo Aperol + Champagne DU","price":16000,"available":true,"note":""},{"id":"prm-37","cat":"promos","sub":"aperitivo","name":"Promo Campari + Baggio","price":13500,"available":true,"note":""},{"id":"prm-38","cat":"promos","sub":"aperitivo","name":"Promo Jägermeister 700 + 4 Red Bull","price":47500,"available":true,"note":""},{"id":"prm-39","cat":"promos","sub":"aperitivo","name":"Promo Holdmoser + 4 Red Bull","price":35000,"available":true,"note":""},{"id":"prm-40","cat":"promos","sub":"ron","name":"Promo Whisky Caballito Blanco + Coca o Sprite 2,25L","price":25000,"available":true,"note":""},{"id":"prm-41","cat":"promos","sub":"ron","name":"Promo Whisky Blenders + Coca o Sprite 2,25L","price":17500,"available":true,"note":""},{"id":"prm-42","cat":"promos","sub":"gin","name":"Promo Gin Heráclito","price":20000,"available":true,"note":""},{"id":"prm-43","cat":"promos","sub":"gin","name":"Promo Gin Llave Seco","price":17000,"available":true,"note":""},{"id":"prm-44","cat":"promos","sub":"gin","name":"Promo Gin Beefeater 24","price":48000,"available":true,"note":""},{"id":"prm-45","cat":"promos","sub":"gin","name":"Promo Gin Bombay","price":35000,"available":true,"note":""},{"id":"prm-46","cat":"promos","sub":"gin","name":"Promo Gin Tanqueray","price":33000,"available":true,"note":""},{"id":"prm-47","cat":"promos","sub":"gin","name":"Promo Gin Bulldog","price":35000,"available":true,"note":""},{"id":"prm-48","cat":"promos","sub":"gin","name":"Promo Gin Beefeater Original 1Lt","price":39000,"available":true,"note":""},{"id":"prm-49","cat":"promos","sub":"gin","name":"Promo Gin Beefeater Original 750cc","price":34000,"available":true,"note":""},{"id":"prm-50","cat":"promos","sub":"gin","name":"Promo Gin Beefeater Saborizado","price":39000,"available":true,"note":""},{"id":"prm-51","cat":"promos","sub":"gin","name":"Promo Gin Aconcagua","price":22000,"available":true,"note":""},{"id":"prm-52","cat":"promos","sub":"gin","name":"Promo Gin Heredero","price":21000,"available":true,"note":""},{"id":"prm-53","cat":"promos","sub":"gin","name":"Promo Gin Gordon","price":19000,"available":true,"note":""},{"id":"prm-54","cat":"promos","sub":"vino","name":"Promo Vino Viñas de Balbo + 1 Pritty 2,25L","price":8000,"available":true,"note":""},{"id":"prm-55","cat":"promos","sub":"vino","name":"Promo Vino Toro (2 cajas) + Secco 3L","price":9500,"available":true,"note":""},{"id":"prm-56","cat":"promos","sub":"vino","name":"Promo Vino Toro (3 cajas) + Secco 3L","price":12000,"available":true,"note":""},{"id":"prm-57","cat":"promos","sub":"vino","name":"Promo Vino Toro (2 cajas) + Pritty 2,25L","price":9500,"available":true,"note":""},{"id":"prm-58","cat":"promos","sub":"vino","name":"Promo Vino Toro (3 cajas) + 1 Pritty 3L","price":12000,"available":true,"note":""},{"id":"prm-59","cat":"promos","sub":"vino","name":"Promo Vino Toro (2 cajas) + Coca 2,25L","price":12000,"available":true,"note":""},{"id":"prm-60","cat":"promos","sub":"vino","name":"Promo Vino Blanco Toro (2 cajas) + Sprite","price":12000,"available":true,"note":""},{"id":"hie-01","cat":"hielo","name":"Bolsa de Hielo 1kg","price":2000,"available":true,"note":"Rolito cristalino"},{"id":"hie-02","cat":"hielo","name":"Bolsa de Hielo 3kg","price":6000,"available":true,"note":"Ideal previa"},{"id":"hie-03","cat":"hielo","name":"Bolsa de Hielo 12kg","price":12000,"available":true,"note":"Bolsa grande eventos / juntada"},{"id":"cer-01","cat":"cervezas","name":"Cerveza 361 (1L)","price":2500,"available":true,"note":""},{"id":"cer-02","cat":"cervezas","name":"Cerveza Brahma (1L)","price":4500,"available":true,"note":""},{"id":"cer-03","cat":"cervezas","name":"Cerveza Quilmes (1L)","price":4300,"available":true,"note":""},{"id":"cer-04","cat":"cervezas","name":"Cerveza Andes Rubia (1L)","price":4800,"available":true,"note":""},{"id":"cer-05","cat":"cervezas","name":"Cerveza Andes IPA (1L)","price":4800,"available":true,"note":""},{"id":"cer-06","cat":"cervezas","name":"Cerveza Andes Roja (1L)","price":4800,"available":true,"note":""},{"id":"cer-07","cat":"cervezas","name":"Cerveza Corona 710cc","price":6000,"available":true,"note":""},{"id":"cer-08","cat":"cervezas","name":"Porrón Corona 330cc (c/u)","price":4100,"available":true,"note":"Unidad"},{"id":"cer-08p","cat":"cervezas","name":"Pack Corona 330cc","price":31000,"available":true,"note":"Pack cerrado"},{"id":"cer-09","cat":"cervezas","name":"Cerveza Patagonia (730cc)","price":6000,"available":true,"note":""},{"id":"cer-10","cat":"cervezas","name":"Cerveza Stella Artois (1L)","price":6000,"available":true,"note":""},{"id":"cer-11","cat":"cervezas","name":"Cerveza Heineken (1L)","price":6400,"available":true,"note":""},{"id":"cer-12","cat":"cervezas","name":"Lata Schneider (c/u)","price":2800,"available":true,"note":"Unidad"},{"id":"cer-12p","cat":"cervezas","name":"Pack Lata Schneider (x6)","price":15600,"available":true,"note":"Pack x6 latas"},{"id":"cer-13","cat":"cervezas","name":"Lata Premium Grolsch (c/u)","price":3800,"available":true,"note":"Unidad"},{"id":"cer-13p","cat":"cervezas","name":"Pack Lata Premium Grolsch (x6)","price":21500,"available":true,"note":"Pack x6 latas"},{"id":"cer-14","cat":"cervezas","name":"Lata Quilmes (c/u)","price":2700,"available":true,"note":"Unidad"},{"id":"cer-14p","cat":"cervezas","name":"Pack Lata Quilmes (x6)","price":14700,"available":true,"note":"Pack x6 latas"},{"id":"cer-15","cat":"cervezas","name":"Lata Quilmes Sin Alcohol (c/u)","price":2700,"available":true,"note":"Unidad 0.0%"},{"id":"cer-15p","cat":"cervezas","name":"Pack Lata Quilmes Sin Alcohol (x6)","price":14700,"available":true,"note":"Pack x6 latas"},{"id":"cer-16","cat":"cervezas","name":"Latón Quilmes (c/u)","price":3900,"available":true,"note":"Unidad latón"},{"id":"cer-16p","cat":"cervezas","name":"Pack Latón Quilmes","price":14800,"available":true,"note":"Pack cerrado"},{"id":"cer-17","cat":"cervezas","name":"Lata Brahma (c/u)","price":2700,"available":true,"note":"Unidad"},{"id":"cer-17p","cat":"cervezas","name":"Pack Lata Brahma (x6)","price":14700,"available":true,"note":"Pack x6 latas"},{"id":"cer-18","cat":"cervezas","name":"Latón Brahma (c/u)","price":3900,"available":true,"note":"Unidad latón"},{"id":"cer-18p","cat":"cervezas","name":"Pack Latón Brahma","price":14800,"available":true,"note":"Pack cerrado"},{"id":"cer-19","cat":"cervezas","name":"Lata Andes Negra (c/u)","price":3200,"available":true,"note":"Unidad"},{"id":"cer-19p","cat":"cervezas","name":"Pack Lata Andes Negra (x6)","price":17400,"available":true,"note":"Pack x6 latas"},{"id":"cer-20","cat":"cervezas","name":"Lata Stella Artois (c/u)","price":3500,"available":true,"note":"Unidad"},{"id":"cer-20p","cat":"cervezas","name":"Pack Lata Stella Artois (x6)","price":19800,"available":true,"note":"Pack x6 latas"},{"id":"cer-21","cat":"cervezas","name":"Latón Stella Artois (c/u)","price":4400,"available":true,"note":"Unidad latón"},{"id":"cer-21p","cat":"cervezas","name":"Pack Latón Stella Artois","price":16200,"available":true,"note":"Pack cerrado"},{"id":"cer-22","cat":"cervezas","name":"Lata Heineken (c/u)","price":4500,"available":true,"note":"Unidad"},{"id":"cer-22p","cat":"cervezas","name":"Pack Lata Heineken (x6)","price":25000,"available":true,"note":"Pack x6 latas"},{"id":"cer-23","cat":"cervezas","name":"Latón Heineken (c/u)","price":6100,"available":true,"note":"Unidad latón"},{"id":"cer-23p","cat":"cervezas","name":"Pack Latón Heineken","price":34600,"available":true,"note":"Pack cerrado"},{"id":"bot-01","cat":"botellas","name":"Fernet Branca 1Lt","price":24500,"available":true,"note":""},{"id":"bot-02","cat":"botellas","name":"Fernet Branca 750cc","price":18000,"available":true,"note":""},{"id":"bot-03","cat":"botellas","name":"Fernet Branca 450cc","price":14500,"available":true,"note":""},{"id":"bot-04","cat":"botellas","name":"Fernet Branca Menta","price":13500,"available":true,"note":""},{"id":"bot-05","cat":"botellas","name":"Fernet Dorado Edición Limitada","price":20000,"available":false,"note":""},{"id":"bot-06","cat":"botellas","name":"Amargo Obrero","price":6000,"available":true,"note":""},{"id":"bot-07","cat":"botellas","name":"Vodka Absolut","price":27500,"available":true,"note":""},{"id":"bot-08","cat":"botellas","name":"Vodka Skyy","price":11300,"available":true,"note":""},{"id":"bot-09","cat":"botellas","name":"Vodka Smirnoff Tropical","price":11500,"available":true,"note":""},{"id":"bot-10","cat":"botellas","name":"Vodka Smirnoff Clásico","price":11000,"available":true,"note":""},{"id":"bot-11","cat":"botellas","name":"Lata Smirnoff Frutos Rojos","price":4300,"available":true,"note":""},{"id":"bot-12","cat":"botellas","name":"Vodka Sernova","price":9000,"available":true,"note":""},{"id":"bot-13","cat":"botellas","name":"Frizzé","price":4600,"available":true,"note":""},{"id":"bot-14","cat":"botellas","name":"Dr. Lemon","price":4600,"available":true,"note":""},{"id":"bot-15","cat":"botellas","name":"Campari","price":11500,"available":true,"note":""},{"id":"bot-16","cat":"botellas","name":"Aperol","price":11000,"available":true,"note":""},{"id":"bot-17","cat":"botellas","name":"Gancia","price":9500,"available":true,"note":""},{"id":"bot-18","cat":"botellas","name":"Ramazzotti","price":8500,"available":true,"note":""},{"id":"bot-19","cat":"botellas","name":"Cynar","price":10500,"available":true,"note":""},{"id":"bot-20","cat":"botellas","name":"Cinzano","price":11000,"available":true,"note":""},{"id":"bot-21","cat":"botellas","name":"Carpano","price":7900,"available":true,"note":""},{"id":"bot-22","cat":"botellas","name":"Gin Heráclito","price":17500,"available":true,"note":""},{"id":"bot-23","cat":"botellas","name":"Gin Hendrick's","price":60000,"available":true,"note":""},{"id":"bot-24","cat":"botellas","name":"Gin Bombay Sapphire","price":33500,"available":true,"note":""},{"id":"bot-25","cat":"botellas","name":"Gin Tanqueray Flor de Sevilla","price":30000,"available":true,"note":""},{"id":"bot-26","cat":"botellas","name":"Gin Beefeater 24","price":45000,"available":true,"note":""},{"id":"bot-27","cat":"botellas","name":"Gin Beefeater Saborizado","price":36000,"available":true,"note":""},{"id":"bot-28","cat":"botellas","name":"Gin Beefeater Sabor Original 750cc","price":31000,"available":true,"note":""},{"id":"bot-29","cat":"botellas","name":"Gin Beefeater Original 1Lt","price":36000,"available":true,"note":""},{"id":"bot-30","cat":"botellas","name":"Gin Bulldog","price":32000,"available":true,"note":""},{"id":"bot-31","cat":"botellas","name":"Gin Aconcagua Botella","price":19000,"available":true,"note":""},{"id":"bot-32","cat":"botellas","name":"Gin Aconcagua en Lata","price":8000,"available":true,"note":""},{"id":"bot-33","cat":"botellas","name":"Gin Heredero (Pink, Pomelo o Naranja)","price":18000,"available":true,"note":"Aclarar sabor"},{"id":"bot-34","cat":"botellas","name":"Gin Llave Seco","price":14000,"available":true,"note":""},{"id":"bot-35","cat":"botellas","name":"Gin Gordon's","price":16500,"available":true,"note":""},{"id":"bot-36","cat":"botellas","name":"Ginebra Llave","price":14000,"available":true,"note":""},{"id":"bot-37","cat":"botellas","name":"Ron Coco Bongo","price":10500,"available":true,"note":""},{"id":"bot-38","cat":"botellas","name":"Ron Bacardi Oro","price":26500,"available":true,"note":""},{"id":"bot-39","cat":"botellas","name":"Ron Bacardi Peach Red","price":17000,"available":true,"note":""},{"id":"bot-40","cat":"botellas","name":"Ron Malibú","price":20000,"available":true,"note":""},{"id":"bot-41","cat":"botellas","name":"Ron Cayman","price":8000,"available":true,"note":""},{"id":"bot-42","cat":"botellas","name":"Jägermeister","price":36000,"available":true,"note":""},{"id":"bot-43","cat":"botellas","name":"Holdmoser","price":25200,"available":true,"note":""},{"id":"bot-44","cat":"botellas","name":"Caña Legui","price":7200,"available":true,"note":""},{"id":"bot-45","cat":"botellas","name":"Tequila José Cuervo","price":58500,"available":true,"note":""},{"id":"bot-46","cat":"botellas","name":"Piña Colada","price":9000,"available":true,"note":""},{"id":"bot-47","cat":"botellas","name":"Granadina","price":4800,"available":true,"note":""},{"id":"vin-01","cat":"vinos","name":"Rutini Tinto","price":20500,"available":true,"note":""},{"id":"vin-02","cat":"vinos","name":"Mosquita Muerta","price":19800,"available":false,"note":""},{"id":"vin-03","cat":"vinos","name":"Catena Zapata","price":18500,"available":true,"note":""},{"id":"vin-04","cat":"vinos","name":"Sapo de Otro Pozo","price":16200,"available":true,"note":""},{"id":"vin-05","cat":"vinos","name":"Las Perdices (Blanco Dulce / Tinto Malbec)","price":10000,"available":true,"note":""},{"id":"vin-06","cat":"vinos","name":"Pispi","price":12300,"available":false,"note":""},{"id":"vin-07","cat":"vinos","name":"Santa Julia Chenin Dulce o Tinto","price":10000,"available":true,"note":""},{"id":"vin-08","cat":"vinos","name":"Lata Santa Julia Chenin Dulce","price":2800,"available":true,"note":""},{"id":"vin-09","cat":"vinos","name":"Santa Julia Malbec","price":9000,"available":true,"note":""},{"id":"vin-10","cat":"vinos","name":"Trapiche Tinto Reserva","price":10100,"available":false,"note":""},{"id":"vin-11","cat":"vinos","name":"Partridge Malbec","price":7200,"available":true,"note":""},{"id":"vin-12","cat":"vinos","name":"Alma Mora Tinto","price":7300,"available":true,"note":""},{"id":"vin-13","cat":"vinos","name":"Chacabuco Malbec","price":8900,"available":true,"note":""},{"id":"vin-14","cat":"vinos","name":"Cordero con Piel de Lobo","price":6500,"available":true,"note":""},{"id":"vin-15","cat":"vinos","name":"Prófugo Mr. Franc","price":5500,"available":true,"note":""},{"id":"vin-16","cat":"vinos","name":"Cazador Cabernet Sauvignon","price":4400,"available":true,"note":""},{"id":"vin-17","cat":"vinos","name":"Prófugo Especies","price":4300,"available":true,"note":""},{"id":"vin-18","cat":"vinos","name":"Prófugo Frutos Rojos","price":4300,"available":true,"note":""},{"id":"vin-19","cat":"vinos","name":"Otro Loco Más Tinto","price":5700,"available":true,"note":""},{"id":"vin-20","cat":"vinos","name":"Lobo Negro","price":4200,"available":true,"note":""},{"id":"vin-21","cat":"vinos","name":"Viñas de Balbo","price":3800,"available":true,"note":""},{"id":"vin-22","cat":"vinos","name":"Quara","price":2800,"available":true,"note":""},{"id":"vin-23","cat":"vinos","name":"Pecado Tinto","price":2500,"available":true,"note":""},{"id":"vin-24","cat":"vinos","name":"Vino Toro Tetra","price":2900,"available":true,"note":""},{"id":"vin-25","cat":"vinos","name":"Gata Flora Blanco Dulce","price":7500,"available":true,"note":""},{"id":"vin-26","cat":"vinos","name":"Colón Clásico","price":10000,"available":true,"note":""},{"id":"vin-27","cat":"vinos","name":"Colón Frutos Rojos / Durazno","price":12500,"available":true,"note":""},{"id":"vin-28","cat":"vinos","name":"New Age","price":5500,"available":true,"note":""},{"id":"vin-29","cat":"vinos","name":"Estancia Mendoza Chenin Dulce","price":4000,"available":true,"note":""},{"id":"vin-30","cat":"vinos","name":"Marlo Blanco Dulce","price":5300,"available":true,"note":""},{"id":"vin-31","cat":"vinos","name":"Norton Cosecha Tardía Blanco / Tinto Dulce","price":4500,"available":true,"note":""},{"id":"vin-32","cat":"vinos","name":"Dilema Blanco Dulce","price":5600,"available":true,"note":""},{"id":"vin-33","cat":"vinos","name":"Más Loco Que Una Cabra","price":5600,"available":true,"note":""},{"id":"whi-01","cat":"whisky","name":"Johnnie Walker Gold Label","price":130000,"available":true,"note":""},{"id":"whi-02","cat":"whisky","name":"Johnnie Walker Double Black","price":90000,"available":true,"note":""},{"id":"whi-03","cat":"whisky","name":"Johnnie Walker Black Label","price":83000,"available":true,"note":""},{"id":"whi-04","cat":"whisky","name":"Johnnie Walker Red Label 750cc","price":44000,"available":true,"note":""},{"id":"whi-05","cat":"whisky","name":"Jack Daniel's Fire 1Lt","price":80000,"available":true,"note":""},{"id":"whi-06","cat":"whisky","name":"Jack Daniel's Honey","price":65000,"available":true,"note":""},{"id":"whi-07","cat":"whisky","name":"Jack Daniel's Old No.7","price":65000,"available":true,"note":""},{"id":"whi-08","cat":"whisky","name":"Gentleman Jack Daniel's","price":95000,"available":true,"note":""},{"id":"whi-09","cat":"whisky","name":"Chivas Regal 12 Años","price":64000,"available":false,"note":""},{"id":"whi-10","cat":"whisky","name":"Jameson Irish Whiskey","price":30700,"available":true,"note":""},{"id":"whi-11","cat":"whisky","name":"Jameson Black Barrel","price":52000,"available":true,"note":""},{"id":"whi-12","cat":"whisky","name":"J&B","price":35500,"available":true,"note":""},{"id":"whi-13","cat":"whisky","name":"Ballantine's","price":35000,"available":true,"note":""},{"id":"whi-14","cat":"whisky","name":"Caballito Blanco (White Horse)","price":20500,"available":true,"note":""},{"id":"whi-15","cat":"whisky","name":"Blenders Pride","price":12000,"available":true,"note":""},{"id":"esp-01","cat":"espumantes","name":"Santa Julia Espumante Classic","price":8500,"available":true,"note":""},{"id":"esp-02","cat":"espumantes","name":"Dada 7 Espumante","price":11000,"available":true,"note":""},{"id":"esp-03","cat":"espumantes","name":"Rosé Espumante","price":7000,"available":true,"note":""},{"id":"esp-04","cat":"espumantes","name":"Chandon Extra Brut o Délice","price":21400,"available":true,"note":"Aclarar variedad"},{"id":"esp-05","cat":"espumantes","name":"Champagne Mumm","price":9800,"available":true,"note":""},{"id":"esp-06","cat":"espumantes","name":"Champagne Renaissance","price":6000,"available":true,"note":""},{"id":"esp-07","cat":"espumantes","name":"Champagne DU","price":6000,"available":true,"note":""},{"id":"esp-08","cat":"espumantes","name":"Sidra Farruca","price":2800,"available":true,"note":""},{"id":"lic-01","cat":"licores","name":"Licor Sheridan's","price":50000,"available":true,"note":""},{"id":"lic-02","cat":"licores","name":"Licor Amarula (Común o Vainilla)","price":40000,"available":true,"note":""},{"id":"lic-03","cat":"licores","name":"Licor Baileys Original","price":40500,"available":true,"note":""},{"id":"lic-04","cat":"licores","name":"Licor Tía María Café","price":10000,"available":true,"note":""},{"id":"lic-05","cat":"licores","name":"Licor Tía María Crema","price":16500,"available":true,"note":""},{"id":"lic-06","cat":"licores","name":"Licor Tres Plumas (Huevo, Chocolate o DDL)","price":7500,"available":true,"note":"Aclarar sabor"},{"id":"gas-01","cat":"gaseosas","name":"Coca-Cola 2,25L","price":5800,"available":true,"note":""},{"id":"gas-02","cat":"gaseosas","name":"Coca-Cola 1,5L","price":4500,"available":true,"note":""},{"id":"gas-03","cat":"gaseosas","name":"Sprite 2,25L","price":5800,"available":true,"note":""},{"id":"gas-04","cat":"gaseosas","name":"Sprite 1,5L","price":4500,"available":true,"note":""},{"id":"gas-05","cat":"gaseosas","name":"Fanta 2,25L","price":5800,"available":true,"note":""},{"id":"gas-06","cat":"gaseosas","name":"Fanta 1,5L","price":4500,"available":true,"note":""},{"id":"gas-07","cat":"gaseosas","name":"Coca / Sprite / Fanta Retornable 2L","price":4500,"available":true,"note":""},{"id":"gas-08","cat":"gaseosas","name":"Coca-Cola de Vidrio","price":3500,"available":true,"note":""},{"id":"gas-09","cat":"gaseosas","name":"Lata de Coca, Sprite o Fanta","price":2100,"available":true,"note":""},{"id":"gas-10","cat":"gaseosas","name":"Coca o Sprite 500ml","price":2600,"available":true,"note":""},{"id":"gas-11","cat":"gaseosas","name":"Gatorade 500ml","price":2200,"available":false,"note":""},{"id":"gas-12","cat":"gaseosas","name":"Powerade Rojo o Azul 500ml","price":2100,"available":true,"note":""},{"id":"gas-13","cat":"gaseosas","name":"Powerade Azul 1Lt","price":3200,"available":false,"note":""},{"id":"gas-14","cat":"gaseosas","name":"Pritty Limón 1,5L","price":2600,"available":true,"note":""},{"id":"gas-15","cat":"gaseosas","name":"Pritty Limón 2,25L","price":3200,"available":true,"note":""},{"id":"gas-16","cat":"gaseosas","name":"Pritty Limón 3L","price":4100,"available":true,"note":""},{"id":"gas-17","cat":"gaseosas","name":"Secco 3L","price":3000,"available":true,"note":""},{"id":"gas-18","cat":"gaseosas","name":"Seven Up o Pepsi 2L","price":4100,"available":true,"note":""},{"id":"gas-19","cat":"gaseosas","name":"Pepsi 1,5L","price":2700,"available":false,"note":""},{"id":"gas-20","cat":"gaseosas","name":"Lata Paso de los Toros Pomelo","price":1500,"available":true,"note":""},{"id":"gas-21","cat":"gaseosas","name":"Paso de los Toros Tónica o Pomelo 1,5L","price":4000,"available":true,"note":""},{"id":"gas-22","cat":"gaseosas","name":"Lata Schweppes","price":2000,"available":true,"note":""},{"id":"gas-23","cat":"gaseosas","name":"Jugo Baggio 1L","price":2500,"available":true,"note":""},{"id":"gas-24","cat":"gaseosas","name":"Jugo Smudis Naranja 1L","price":3500,"available":true,"note":""},{"id":"gas-25","cat":"gaseosas","name":"Speed 250cc","price":2000,"available":true,"note":""},{"id":"gas-26","cat":"gaseosas","name":"Speed XL 500cc","price":3200,"available":true,"note":""},{"id":"gas-27","cat":"gaseosas","name":"Monster 500cc","price":3700,"available":true,"note":""},{"id":"gas-28","cat":"gaseosas","name":"Red Bull 250cc","price":3700,"available":true,"note":""},{"id":"gas-29","cat":"gaseosas","name":"Levité Naranja o Pomelo","price":2700,"available":true,"note":""},{"id":"gas-30","cat":"gaseosas","name":"Aquarius Pomelo 500ml","price":1500,"available":true,"note":""},{"id":"gas-31","cat":"gaseosas","name":"Aquarius Manzana o Pera 1,5L","price":4100,"available":true,"note":""},{"id":"gas-32","cat":"gaseosas","name":"Agua Saborizada Fresh","price":2100,"available":true,"note":""},{"id":"gas-33","cat":"gaseosas","name":"Agua Mineral o Soda 500ml","price":1500,"available":true,"note":""},{"id":"gas-34","cat":"gaseosas","name":"Agua Mineral 1Lt","price":1700,"available":true,"note":""},{"id":"gas-35","cat":"gaseosas","name":"Soda Sifón","price":2100,"available":true,"note":""},{"id":"gas-36","cat":"gaseosas","name":"Jugo Cepita 1L","price":3700,"available":true,"note":""},{"id":"gas-37","cat":"gaseosas","name":"Jugo Cepita 1,5L","price":4200,"available":true,"note":""},{"id":"hie-b01","cat":"hierbas","name":"Deshidratado Limón","price":3700,"available":true,"note":""},{"id":"hie-b02","cat":"hierbas","name":"Deshidratado Pomelo","price":3700,"available":true,"note":""},{"id":"hie-b03","cat":"hierbas","name":"Botánicos Gin Tonic (Siempre vive, Hibiscus, Cítricos, Anís y pimienta)","price":3700,"available":true,"note":""},{"id":"hie-b04","cat":"hierbas","name":"Frutos Congelados (Frutilla, Arándano y Mora) 100gr","price":2300,"available":true,"note":""},{"id":"snk-01","cat":"snacks","name":"Papas Lays Clásicas","price":4400,"available":true,"note":""},{"id":"snk-02","cat":"snacks","name":"Papas Lays Jamón Serrano / Queso Crema y Ciboulette","price":4400,"available":true,"note":""},{"id":"snk-03","cat":"snacks","name":"Snacks 3D","price":4400,"available":true,"note":""},{"id":"snk-04","cat":"snacks","name":"Doritos","price":4400,"available":true,"note":""},{"id":"snk-05","cat":"snacks","name":"Papas Quento 90gr (Consultar sabores)","price":3100,"available":true,"note":""},{"id":"cho-01","cat":"chocolates","name":"Caja Bon o Bon Supreme Avellanas 140g","price":9500,"available":true,"note":""},{"id":"cho-02","cat":"chocolates","name":"Chocolate LatteChocolate con Dedicatoria 60g","price":5000,"available":true,"note":""},{"id":"cho-03","cat":"chocolates","name":"Alfajor Triple Terrabusi Blanco","price":2000,"available":true,"note":""},{"id":"cho-04","cat":"chocolates","name":"Alfajor Milka Extra Dulce de Leche (Blanco / Negro)","price":2000,"available":true,"note":""},{"id":"cho-05","cat":"chocolates","name":"Alfajor Matilda","price":3000,"available":true,"note":""},{"id":"cho-06","cat":"chocolates","name":"Alfajor Tatín Triple (Blanco / Negro)","price":1200,"available":true,"note":""},{"id":"cho-07","cat":"chocolates","name":"Alfajor Fantoche (Blanco / Negro)","price":1300,"available":true,"note":""},{"id":"cho-08","cat":"chocolates","name":"Alfajor Cofler Block Simple","price":1200,"available":true,"note":""},{"id":"cho-09","cat":"chocolates","name":"Alfajor Bon o Bon Simple (Blanco / Negro)","price":1100,"available":true,"note":""},{"id":"cho-10","cat":"chocolates","name":"Alfajor Bon o Bon Triple Negro","price":2000,"available":true,"note":""},{"id":"cho-11","cat":"chocolates","name":"Alfajor Bon o Bon GOAT","price":2300,"available":true,"note":""},{"id":"cho-12","cat":"chocolates","name":"Alfajor Cofler Block Triple","price":2000,"available":true,"note":""},{"id":"cho-13","cat":"chocolates","name":"Alfajor Águila (Brownie, Dark, Negro o Blanco)","price":2000,"available":true,"note":""},{"id":"cho-14","cat":"chocolates","name":"Alfajor Chocotorta Triple","price":2000,"available":false,"note":""},{"id":"cho-15","cat":"chocolates","name":"Alfajor Tofi Negro Triple","price":2000,"available":true,"note":""},{"id":"cho-16","cat":"chocolates","name":"Alfajor Rasta (Negro o Blanco)","price":2000,"available":true,"note":""},{"id":"cho-17","cat":"chocolates","name":"Alfajor Barrigón Varios Sabores (c/u)","price":2300,"available":true,"note":""},{"id":"cho-17p","cat":"chocolates","name":"Promo 2x Alfajor Barrigón","price":4000,"available":true,"note":"2 unidades"},{"id":"cho-18","cat":"chocolates","name":"Chocolate Arcor","price":1500,"available":true,"note":""},{"id":"cho-19","cat":"chocolates","name":"Rocklets 40gr","price":2000,"available":true,"note":""},{"id":"cho-20","cat":"chocolates","name":"Chocolate Graffiti (Blanco o Negro)","price":2100,"available":true,"note":""},{"id":"cho-21","cat":"chocolates","name":"Chocolate Cofler Aireado 55gr (Leche, Blanco, Mixto, Negro, Tofi, Bon o Bon)","price":5000,"available":true,"note":""},{"id":"cho-22","cat":"chocolates","name":"Chocolate Cofler Extra Grande (Chocotorta, Cookies & Cream, Doble Mousse)","price":9500,"available":true,"note":""},{"id":"cho-23","cat":"chocolates","name":"Cofler Extra 46gr (Doble Mousse, Chocotorta, Cookies & Cream)","price":2700,"available":true,"note":""},{"id":"cho-24","cat":"chocolates","name":"Cofler 46gr Relleno Dulce de Leche","price":3000,"available":true,"note":""},{"id":"cho-25","cat":"chocolates","name":"Cofler Tres Placeres / Rocklets 55g","price":4500,"available":true,"note":""},{"id":"cho-26","cat":"chocolates","name":"Cofler Dubai 43g","price":4000,"available":true,"note":""},{"id":"cho-27","cat":"chocolates","name":"Block 38gr Negro","price":2500,"available":true,"note":""},{"id":"cho-28","cat":"chocolates","name":"Block 38gr Gold","price":2500,"available":true,"note":""},{"id":"cho-29","cat":"chocolates","name":"Block 110gr","price":6000,"available":true,"note":""},{"id":"cho-30","cat":"chocolates","name":"Block 170gr (Negro o Miti Miti)","price":11000,"available":true,"note":""},{"id":"cho-31","cat":"chocolates","name":"Block 300gr Negro","price":17000,"available":true,"note":""},{"id":"cho-32","cat":"chocolates","name":"Barra Cofler con Dulce de Leche","price":2400,"available":true,"note":""},{"id":"cho-33","cat":"chocolates","name":"Barra Block Max 60gr","price":2000,"available":true,"note":""},{"id":"cho-34","cat":"chocolates","name":"Barra Bon o Bon XL Negro","price":2000,"available":true,"note":""},{"id":"cho-35","cat":"chocolates","name":"Barra Bon o Bon Simple (Blanco / Negro)","price":1400,"available":true,"note":""},{"id":"cho-36","cat":"chocolates","name":"Barra Cofler Chocolinas XL","price":2000,"available":true,"note":""},{"id":"cho-37","cat":"chocolates","name":"Barra Cofler Chocolinas Max","price":2000,"available":true,"note":""},{"id":"cho-38","cat":"chocolates","name":"Chocolate Bon o Bon Relleno Chocolinas 48g","price":2700,"available":true,"note":""},{"id":"chi-01","cat":"chicles","name":"Chicle Topline Clásico","price":600,"available":true,"note":""},{"id":"chi-02","cat":"chicles","name":"Chicle Topline 7ven","price":1200,"available":true,"note":""},{"id":"chi-03","cat":"chicles","name":"Chicle Topline Ultra","price":2400,"available":true,"note":""},{"id":"chi-04","cat":"chicles","name":"Menthoplus (Negros / Miel)","price":1000,"available":true,"note":""},{"id":"chi-05","cat":"chicles","name":"Flynn Paff (Promo 2 unidades)","price":300,"available":true,"note":"2x $300"},{"id":"pos-01","cat":"postres","name":"Postre Tiramisú","price":7000,"available":true,"note":"Porción individual casera"},{"id":"pos-02","cat":"postres","name":"Postre Oreo","price":7000,"available":true,"note":"Porción individual"},{"id":"pos-03","cat":"postres","name":"Postre Chocotorta","price":7000,"available":true,"note":"Porción individual"},{"id":"pos-04","cat":"postres","name":"Postre Turrón de Quaker","price":7000,"available":true,"note":"Porción individual"},{"id":"pos-05","cat":"postres","name":"Postre Brownie con Franui","price":7000,"available":true,"note":"Porción individual"},{"id":"vap-01","cat":"vapers","name":"Vaper The Black Sheep 25k (Cola y Lima)","price":29000,"available":true,"note":"25.000 puffs"},{"id":"vap-02","cat":"vapers","name":"Vaper Ebcreate 40k (Winter Mint / Pink Lemonade)","price":36000,"available":true,"note":"40.000 puffs"},{"id":"vap-03","cat":"vapers","name":"Vaper Ignite 40k (Grape Ice + Strawberry / Strawberry)","price":36000,"available":true,"note":"40.000 puffs"},{"id":"vap-04","cat":"vapers","name":"Vaper Elfbar 15k (Mango Magic)","price":26000,"available":true,"note":"15.000 puffs"},{"id":"vap-05","cat":"vapers","name":"Vaper Lost Vape 10k (Raspberry Sour Apple / Pineapple Lemonade)","price":17000,"available":true,"note":"10.000 puffs"},{"id":"vap-06","cat":"vapers","name":"Vaper Funky Lands 7k (Pink Grapefruit)","price":13000,"available":true,"note":"7.000 puffs"},{"id":"vap-07","cat":"vapers","name":"Vaper Ebdesign 6k (Blue Razz Ice / Strawberry Ice)","price":12000,"available":true,"note":"6.000 puffs"},{"id":"vap-08","cat":"vapers","name":"Vaper Elfbar 5k (Kiwi Passion Fruit Guava)","price":11000,"available":true,"note":"5.000 puffs"},{"id":"vap-09","cat":"vapers","name":"Vaper Ignite 2500 (Very Berries, Icy Mint, Raspberry Watermelon, Pink Lemonade)","price":9000,"available":true,"note":"2.500 puffs"},{"id":"cig-01","cat":"cigarrillos","name":"Marlboro 20 Box (Común, Fusión, Sandía)","price":6700,"available":true,"note":""},{"id":"cig-02","cat":"cigarrillos","name":"Marlboro 20 Común KS","price":6300,"available":true,"note":""},{"id":"cig-03","cat":"cigarrillos","name":"Marlboro 10 (Común o Fusión)","price":4200,"available":true,"note":""},{"id":"cig-04","cat":"cigarrillos","name":"Marlboro Crafted Común","price":4100,"available":true,"note":""},{"id":"cig-05","cat":"cigarrillos","name":"Marlboro Crafted Convertible","price":4100,"available":true,"note":""},{"id":"cig-06","cat":"cigarrillos","name":"Marlboro Coral / Purple","price":4500,"available":true,"note":""},{"id":"cig-07","cat":"cigarrillos","name":"Philip Morris 20 Común KS","price":5700,"available":true,"note":""},{"id":"cig-08","cat":"cigarrillos","name":"Philip Morris 20 Box (Común o Convertible)","price":6200,"available":true,"note":""},{"id":"cig-09","cat":"cigarrillos","name":"Philip Morris 20 Red","price":2800,"available":true,"note":""},{"id":"cig-10","cat":"cigarrillos","name":"Philip Morris 10 (Común o Convertible)","price":3900,"available":true,"note":""},{"id":"cig-11","cat":"cigarrillos","name":"Chesterfield 20 (Común o Convertible)","price":5200,"available":true,"note":""},{"id":"cig-12","cat":"cigarrillos","name":"Chesterfield Box (Convertible o Uva)","price":5500,"available":true,"note":""},{"id":"cig-13","cat":"cigarrillos","name":"Chesterfield 10 (Común o Convertible)","price":3500,"available":true,"note":""},{"id":"cig-14","cat":"cigarrillos","name":"Dolchester 20","price":1800,"available":true,"note":""},{"id":"cig-15","cat":"cigarrillos","name":"Red Point 20","price":2200,"available":true,"note":""},{"id":"cig-16","cat":"cigarrillos","name":"Master 20","price":2100,"available":true,"note":""},{"id":"cig-17","cat":"cigarrillos","name":"Mill 20","price":2100,"available":true,"note":""},{"id":"cig-18","cat":"cigarrillos","name":"🔥 Encendedor","price":600,"available":true,"note":""},{"id":"cig-19","cat":"cigarrillos","name":"Preservativos Prime / Tulipán","price":5300,"available":true,"note":""}];
+
+    const STORAGE_KEYS = {
+      SETTINGS: 'flanders_settings_v1',
+      PRODUCTS: 'flanders_products_v1',
+      MOTOBOYS: 'flanders_motoboys_v1',
+      LOYALTY: 'flanders_loyalty_v1'
+    };
+
+    let settings = {
+      businessName: 'Maldito Flanders',
+      businessSubtitle: 'Delivery de Bebidas, Promos, Kiosco & Vapers 🛵',
+      whatsappPhone: '',
+      paymentAlias: 'malditoflanders.mp',
+      minOrderAmount: 7000,
+      deliveryFee: 1500,
+      stampMinAmount: 15000,
+      targetStamps: 6,
+      rewardText: '1 Bolsa de Hielo 3kg Gratis + Descuento Previa',
+      moto1Name: 'Moto 1 (Repartidor 1)',
+      moto2Name: 'Moto 2 (Repartidor 2)',
+      isOpen: true,
+      businessLogo: ''
+    };
+
+    let products = [];
+    let cart = {}; // { productId: qty }
+    let motoboyDeliveries = [];
+    let loyaltyMembers = [
+      { id: 'soc-1', name: 'Matías (Cliente Frecuente)', phone: '', stamps: 4 },
+      { id: 'soc-2', name: 'Agustín (Previa Viernes)', phone: '', stamps: 2 }
+    ];
+
+    let state = {
+      ownerMode: false,
+      selectedCategory: 'all',
+      promoSubfilter: 'all',
+      searchQuery: '',
+      collapsedCategories: {},
+      drinkTemp: 'Bien Fría ❄️',
+      deliveryMode: 'delivery',
+      paymentMethod: 'cash',
+      selectedDispatchMoto: 1
+    };
+
+    // =========================================================
+    // FORMATOS ARGENTINOS (ARS $ Y HORA 24HS GMT-3)
+    // =========================================================
+    function formatARS(amount) {
+      const n = Math.round(Number(amount) || 0);
+      return '$' + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function updateArgClock() {
+      const el = document.getElementById('argClock');
+      if (!el) return;
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('es-AR', {
+        timeZone: 'America/Argentina/Buenos_Aires',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+      el.textContent = '🇦🇷 ' + timeStr + ' hs';
+    }
+
+    function showToast(msg, icon = '✅') {
+      const box = document.getElementById('toastBox');
+      document.getElementById('toastIcon').textContent = icon;
+      document.getElementById('toastText').textContent = msg;
+      box.classList.remove('hidden');
+      box.classList.add('flex');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        box.classList.add('hidden');
+        box.classList.remove('flex');
+      }, 2600);
+    }
+
+    // =========================================================
+    // CARGA Y PERSISTENCIA
+    // =========================================================
+    function loadAllData() {
+      try {
+        const s = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+        if (s) settings = { ...settings, ...JSON.parse(s) };
+      } catch (e) {}
+
+      try {
+        const p = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+        if (p) {
+          products = JSON.parse(p);
+        } else {
+          products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+        }
+      } catch (e) {
+        products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+      }
+
+      try {
+        const m = localStorage.getItem(STORAGE_KEYS.MOTOBOYS);
+        if (m) motoboyDeliveries = JSON.parse(m);
+      } catch (e) {}
+
+      try {
+        const l = localStorage.getItem(STORAGE_KEYS.LOYALTY);
+        if (l) loyaltyMembers = JSON.parse(l);
+      } catch (e) {}
+    }
+
+    function saveProducts() {
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+    }
+
+    function saveSettingsToStorage() {
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+    }
+
+    function saveMotoboysToStorage() {
+      localStorage.setItem(STORAGE_KEYS.MOTOBOYS, JSON.stringify(motoboyDeliveries));
+    }
+
+    function saveLoyaltyToStorage() {
+      localStorage.setItem(STORAGE_KEYS.LOYALTY, JSON.stringify(loyaltyMembers));
+    }
+
+    // =========================================================
+    // RENDERIZADO DE IDENTIDAD Y HEADER
+    // =========================================================
+    function applyBrandingUI() {
+      document.getElementById('headerBusinessName').textContent = settings.businessName || 'Maldito Flanders';
+      document.getElementById('headerSubtitle').textContent = settings.businessSubtitle || 'Delivery de Bebidas & Kiosco';
+      document.getElementById('ruleMinOrderText').textContent = formatARS(settings.minOrderAmount || 7000);
+      document.getElementById('ruleDeliveryFeeText').textContent = formatARS(settings.deliveryFee || 1500);
+      document.getElementById('ruleStampMinText').textContent = 'Desde ' + formatARS(settings.stampMinAmount || 15000);
+
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('headerStatusText');
+      if (settings.isOpen) {
+        statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+        statusText.textContent = 'Abierto · Delivery & Retiro';
+        statusText.className = 'text-emerald-400 font-extrabold uppercase tracking-wider text-[10px]';
+      } else {
+        statusDot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
+        statusText.textContent = 'Cerrado en este momento';
+        statusText.className = 'text-rose-400 font-extrabold uppercase tracking-wider text-[10px]';
+      }
+
+      const logoContainers = [
+        document.getElementById('headerLogoContainer'),
+        document.getElementById('settingsLogoPreview'),
+        document.getElementById('flyerLogoBox'),
+        document.getElementById('passLogoBox')
+      ];
+      logoContainers.forEach(box => {
+        if (!box) return;
+        if (settings.businessLogo) {
+          box.innerHTML = `<img src="${settings.businessLogo}" alt="Logo" class="w-full h-full object-cover">`;
+        } else {
+          box.innerHTML = '<span class="select-none">🍺</span>';
+        }
+      });
+
+      const dotMotos = document.getElementById('activeMotosBadge');
+      if (dotMotos) {
+        dotMotos.classList.toggle('hidden', motoboyDeliveries.length === 0);
+      }
+    }
+
+    function toggleOwnerMode() {
+      state.ownerMode = !state.ownerMode;
+      const btn = document.getElementById('btnOwnerToggle');
+      const lbl = document.getElementById('ownerToggleLabel');
+      const toolbar = document.getElementById('ownerToolbar');
+
+      if (state.ownerMode) {
+        btn.className = 'px-2.5 py-0.5 rounded-full bg-amber-400 text-zinc-950 font-black text-[10px] border border-amber-300 transition flex items-center gap-1';
+        lbl.textContent = 'Modo Dueño: ON';
+        toolbar.classList.remove('hidden');
+        showToast('Modo Dueño activado: podés editar precios y stock', '👨‍🍳');
+      } else {
+        btn.className = 'px-2.5 py-0.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-extrabold text-[10px] border border-zinc-700 transition flex items-center gap-1';
+        lbl.textContent = 'Modo Dueño: OFF';
+        toolbar.classList.add('hidden');
+      }
+      renderCatalog();
+    }
+
+    // =========================================================
+    // FILTROS, CATEGORÍAS Y CATÁLOGO DE ALTA DENSIDAD
+    // =========================================================
+    function renderCategoryChips() {
+      const container = document.getElementById('categoryChipsContainer');
+      const totalCount = products.length;
+      let html = `
+        <button onclick="selectCategory('all')" class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 transition ${
+          state.selectedCategory === 'all'
+            ? 'bg-amber-400 text-zinc-950 shadow-sm'
+            : 'bg-[#14161D] text-zinc-300 border border-zinc-800 hover:border-zinc-700'
+        }">
+          🔥 Todas (${totalCount})
+        </button>
+      `;
+
+      CATEGORIES.forEach(cat => {
+        const count = products.filter(p => p.cat === cat.id).length;
+        const isSel = state.selectedCategory === cat.id;
+        html += `
+          <button onclick="selectCategory('${cat.id}')" class="px-3 py-1.5 rounded-xl text-xs font-extrabold shrink-0 transition flex items-center gap-1 ${
+            isSel
+              ? 'bg-amber-400 text-zinc-950 shadow-sm'
+              : 'bg-[#14161D] text-zinc-300 border border-zinc-800 hover:border-zinc-700'
+          }">
+            <span>${cat.icon}</span>
+            <span>${cat.name}</span>
+            <span class="text-[10px] opacity-75">(${count})</span>
+          </button>
+        `;
+      });
+
+      container.innerHTML = html;
+
+      // Mostrar subfiltros de promos solo cuando aplica
+      const subBar = document.getElementById('promoSubfiltersContainer');
+      if (state.selectedCategory === 'all' || state.selectedCategory === 'promos') {
+        subBar.classList.remove('hidden');
+        subBar.classList.add('flex');
+      } else {
+        subBar.classList.add('hidden');
+        subBar.classList.remove('flex');
+      }
+    }
+
+    function selectCategory(catId) {
+      state.selectedCategory = catId;
+      renderCategoryChips();
+      renderCatalog();
+    }
+
+    function setPromoSubfilter(sub) {
+      state.promoSubfilter = sub;
+      document.querySelectorAll('.promo-sub-chip').forEach(btn => {
+        if (btn.getAttribute('data-sub') === sub) {
+          btn.className = 'promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-400 text-zinc-950 shrink-0';
+        } else {
+          btn.className = 'promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0';
+        }
+      });
+      renderCatalog();
+    }
+
+    function handleSearchInput() {
+      const val = document.getElementById('searchInput').value.trim();
+      state.searchQuery = val.toLowerCase();
+      document.getElementById('btnClearSearch').classList.toggle('hidden', !val);
+      renderCatalog();
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      state.searchQuery = '';
+      document.getElementById('btnClearSearch').classList.add('hidden');
+      renderCatalog();
+    }
+
+    function toggleCategoryAccordion(catId) {
+      state.collapsedCategories[catId] = !state.collapsedCategories[catId];
+      renderCatalog();
+    }
+
+    function renderCatalog() {
+      const container = document.getElementById('catalogContainer');
+      const q = state.searchQuery;
+
+      const catsToShow = state.selectedCategory === 'all'
+        ? CATEGORIES
+        : CATEGORIES.filter(c => c.id === state.selectedCategory);
+
+      let html = '';
+      let totalMatched = 0;
+
+      catsToShow.forEach(cat => {
+        let items = products.filter(p => p.cat === cat.id);
+
+        if (cat.id === 'promos' && state.promoSubfilter !== 'all') {
+          items = items.filter(p => p.sub === state.promoSubfilter);
+        }
+
+        if (q) {
+          items = items.filter(p =>
+            p.name.toLowerCase().includes(q) ||
+            (p.note && p.note.toLowerCase().includes(q)) ||
+            cat.name.toLowerCase().includes(q)
+          );
+        }
+
+        if (items.length === 0) return;
+        totalMatched += items.length;
+
+        // Ordenar: disponibles primero, sin stock al final
+        items.sort((a, b) => (a.available === b.available ? 0 : a.available ? -1 : 1));
+
+        const isCollapsed = !q && state.selectedCategory === 'all' && Boolean(state.collapsedCategories[cat.id]);
+
+        html += `
+          <section class="bg-[#14161D] border border-zinc-800/90 rounded-2xl overflow-hidden shadow-md">
+            <div onclick="toggleCategoryAccordion('${cat.id}')" class="px-3.5 py-2.5 bg-[#191C26] border-b border-zinc-800 flex items-center justify-between cursor-pointer select-none">
+              <div class="flex items-center gap-2">
+                <span class="text-base">${cat.icon}</span>
+                <h2 class="text-xs font-black uppercase tracking-wider text-amber-400">${cat.name}</h2>
+                <span class="px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[10px] font-bold">${items.length}</span>
+              </div>
+              <span class="text-[10px] font-bold text-zinc-400">${isCollapsed ? '▼ Mostrar' : '▲ Plegar'}</span>
+            </div>
+
+            <div class="${isCollapsed ? 'hidden' : 'divide-y divide-zinc-800/70'}">
+              ${items.map(item => renderProductRow(item)).join('')}
+            </div>
+          </section>
+        `;
+      });
+
+      if (totalMatched === 0) {
+        html = `
+          <div class="text-center py-12 px-4 bg-[#14161D] border border-zinc-800 rounded-3xl">
+            <span class="text-3xl block mb-2">🍺</span>
+            <p class="text-sm font-black text-white">No encontramos productos con esa búsqueda</p>
+            <button onclick="clearSearch(); selectCategory('all'); setPromoSubfilter('all');" class="mt-3 px-4 py-2 bg-amber-400 text-zinc-950 font-black rounded-xl text-xs">
+              Ver todo el catálogo
+            </button>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function renderProductRow(item) {
+      const qty = cart[item.id] || 0;
+      const isAvail = item.available !== false;
+
+      if (state.ownerMode) {
+        return `
+          <div class="p-3 flex items-center justify-between gap-2 ${isAvail ? '' : 'bg-zinc-900/60 opacity-75'}">
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-extrabold text-white leading-snug">${item.name}</p>
+              ${item.note ? `<p class="text-[10px] text-zinc-400">${item.note}</p>` : ''}
+              <div class="flex items-center gap-2 mt-1.5">
+                <button onclick="promptQuickPriceEdit('${item.id}')" class="px-2 py-0.5 rounded-lg bg-amber-400/20 border border-amber-400/40 text-amber-300 font-black text-xs">
+                  ✏️ ${formatARS(item.price)}
+                </button>
+                <button onclick="toggleProductStock('${item.id}')" class="px-2 py-0.5 rounded-lg text-[10px] font-black ${
+                  isAvail ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                }">
+                  ${isAvail ? '🟢 En Stock' : '🔴 Sin Stock'}
+                </button>
+                <button onclick="openEditProductModal('${item.id}')" class="text-[11px] text-zinc-400 hover:text-white px-1">⚙️</button>
+                <button onclick="deleteProduct('${item.id}')" class="text-[11px] text-rose-400 hover:text-rose-300 px-1">🗑️</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (!isAvail) {
+        return `
+          <div class="px-3.5 py-2.5 flex items-center justify-between gap-2 bg-zinc-900/40 opacity-55">
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-bold text-zinc-400 line-through leading-snug">${item.name}</p>
+              <span class="inline-block text-[10px] font-black text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-md mt-0.5">${formatARS(item.price)}</span>
+            </div>
+            <span class="px-2.5 py-1 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-400 font-extrabold text-[10px] uppercase shrink-0">
+              Sin Stock
+            </span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="px-3.5 py-2.5 flex items-center justify-between gap-2.5 hover:bg-zinc-800/30 transition">
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-extrabold text-white leading-snug">${item.name}</p>
+            ${item.note ? `<p class="text-[10px] text-zinc-400 truncate">${item.note}</p>` : ''}
+            <p class="text-xs font-black text-amber-400 mt-0.5">${formatARS(item.price)}</p>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            ${qty > 0 ? `
+              <button onclick="changeCartQty('${item.id}', -1)" class="w-7 h-7 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-black text-sm flex items-center justify-center border border-zinc-700 active:scale-90 transition">−</button>
+              <span class="w-5 text-center text-xs font-black text-amber-400">${qty}</span>
+              <button onclick="changeCartQty('${item.id}', 1)" class="w-7 h-7 rounded-xl bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black text-sm flex items-center justify-center active:scale-90 transition">+</button>
+            ` : `
+              <button onclick="changeCartQty('${item.id}', 1)" class="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-amber-400 hover:text-zinc-950 text-amber-400 border border-amber-400/30 font-black text-xs active:scale-95 transition">
+                + Sumar
+              </button>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================
+    // LÓGICA DEL CARRITO, COMPRA MÍNIMA ($7.000) Y VUELTO
+    // =========================================================
+    function changeCartQty(productId, delta) {
+      const current = cart[productId] || 0;
+      const next = Math.max(0, current + delta);
+      if (next === 0) {
+        delete cart[productId];
+      } else {
+        cart[productId] = next;
+      }
+      renderCatalog();
+      updateFloatingCartBar();
+      if (!document.getElementById('cartModal').classList.contains('hidden')) {
+        renderCartModalContent();
+      }
+    }
+
+    function quickAddIce(iceId) {
+      changeCartQty(iceId, 1);
+      showToast('🧊 ¡Hielo sumado al pedido!', '🧊');
+    }
+
+    function getCartSubtotal() {
+      let sum = 0;
+      let count = 0;
+      for (const [pid, qty] of Object.entries(cart)) {
+        const prod = products.find(p => p.id === pid);
+        if (prod && prod.available !== false) {
+          sum += prod.price * qty;
+          count += qty;
+        }
+      }
+      return { sum, count };
+    }
+
+    function updateFloatingCartBar() {
+      const { sum, count } = getCartSubtotal();
+      const bar = document.getElementById('floatingCartBar');
+      if (count === 0) {
+        bar.classList.add('hidden');
+        return;
+      }
+      bar.classList.remove('hidden');
+      document.getElementById('cartBarCount').textContent = count;
+      document.getElementById('cartBarTotal').textContent = formatARS(sum);
+
+      const minOrder = Number(settings.minOrderAmount) || 7000;
+      const stampMin = Number(settings.stampMinAmount) || 15000;
+      const subtext = document.getElementById('cartBarSubtext');
+
+      if (sum < minOrder) {
+        subtext.textContent = `Faltan ${formatARS(minOrder - sum)} para envío a domicilio`;
+      } else if (sum < stampMin) {
+        subtext.textContent = `¡Sumá ${formatARS(stampMin - sum)} más y ganás 1 sello ⭐!`;
+      } else {
+        subtext.textContent = '🎉 ¡Pedido listo! Suma +1 Sello de Fidelidad ⭐';
+      }
+    }
+
+    function openCartModal() {
+      const { count } = getCartSubtotal();
+      if (count === 0) {
+        showToast('Primero sumá bebidas o promos al carrito', '🛒');
+        return;
+      }
+      document.getElementById('cartDisplayAlias').textContent = settings.paymentAlias || 'malditoflanders.mp';
+      renderCartModalContent();
+      document.getElementById('cartModal').classList.remove('hidden');
+    }
+
+    function closeCartModal() {
+      document.getElementById('cartModal').classList.add('hidden');
+    }
+
+    function clearCart() {
+      cart = {};
+      closeCartModal();
+      renderCatalog();
+      updateFloatingCartBar();
+    }
+
+    function setDrinkTemp(temp) {
+      state.drinkTemp = temp;
+      const isCold = temp.includes('Fría');
+      document.getElementById('btnTempCold').className = isCold
+        ? 'py-2 px-3 rounded-xl border text-xs font-black bg-sky-500 text-zinc-950 border-sky-400'
+        : 'py-2 px-3 rounded-xl border text-xs font-bold bg-[#0D0E12] text-zinc-400 border-zinc-800';
+      document.getElementById('btnTempNatural').className = !isCold
+        ? 'py-2 px-3 rounded-xl border text-xs font-black bg-amber-400 text-zinc-950 border-amber-400'
+        : 'py-2 px-3 rounded-xl border text-xs font-bold bg-[#0D0E12] text-zinc-400 border-zinc-800';
+    }
+
+    function setDeliveryMode(mode) {
+      state.deliveryMode = mode;
+      const isDel = mode === 'delivery';
+      document.getElementById('btnModeDelivery').className = isDel
+        ? 'py-2.5 px-3 rounded-xl border text-xs font-black bg-amber-400 text-zinc-950 border-amber-400'
+        : 'py-2.5 px-3 rounded-xl border text-xs font-bold bg-[#0D0E12] text-zinc-400 border-zinc-800';
+      document.getElementById('btnModeTakeaway').className = !isDel
+        ? 'py-2.5 px-3 rounded-xl border text-xs font-black bg-amber-400 text-zinc-950 border-amber-400'
+        : 'py-2.5 px-3 rounded-xl border text-xs font-bold bg-[#0D0E12] text-zinc-400 border-zinc-800';
+
+      document.getElementById('deliveryAddressFields').classList.toggle('hidden', !isDel);
+      document.getElementById('cartDeliveryRow').classList.toggle('hidden', !isDel);
+      updateCartTotalsUI();
+    }
+
+    function setPaymentMethod(method) {
+      state.paymentMethod = method;
+      const isCash = method === 'cash';
+      document.getElementById('btnPayCash').className = isCash
+        ? 'py-2 px-3 rounded-xl border text-xs font-black bg-emerald-500 text-zinc-950 border-emerald-400'
+        : 'py-2 px-3 rounded-xl border text-xs font-bold bg-[#0D0E12] text-zinc-400 border-zinc-800';
+      document.getElementById('btnPayTransfer').className = !isCash
+        ? 'py-2 px-3 rounded-xl border text-xs font-black bg-emerald-500 text-zinc-950 border-emerald-400'
+        : 'py-2 px-3 rounded-xl border text-xs font-bold bg-[#0D0E12] text-zinc-400 border-zinc-800';
+
+      document.getElementById('cashChangeBlock').classList.toggle('hidden', !isCash);
+      document.getElementById('transferAliasBlock').classList.toggle('hidden', isCash);
+      updateCartTotalsUI();
+    }
+
+    function setQuickCash(val) {
+      document.getElementById('cashPayWithInput').value = val > 0 ? val : '';
+      updateCartTotalsUI();
+    }
+
+    function renderCartModalContent() {
+      const listEl = document.getElementById('cartItemsList');
+      const entries = Object.entries(cart);
+      if (entries.length === 0) {
+        closeCartModal();
+        return;
+      }
+
+      listEl.innerHTML = entries.map(([pid, qty]) => {
+        const prod = products.find(p => p.id === pid);
+        if (!prod) return '';
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#0D0E12] border border-zinc-800 gap-2">
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-extrabold text-white truncate">${prod.name}</p>
+              <p class="text-[11px] font-bold text-amber-400">${formatARS(prod.price)} c/u · Sub: ${formatARS(prod.price * qty)}</p>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="changeCartQty('${pid}', -1)" class="w-6 h-6 rounded-lg bg-zinc-800 text-white font-black text-xs">−</button>
+              <span class="w-5 text-center text-xs font-black text-white">${qty}</span>
+              <button onclick="changeCartQty('${pid}', 1)" class="w-6 h-6 rounded-lg bg-amber-400 text-zinc-950 font-black text-xs">+</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      updateCartTotalsUI();
+    }
+
+    function updateCartTotalsUI() {
+      const { sum } = getCartSubtotal();
+      const isDel = state.deliveryMode === 'delivery';
+      const delFee = isDel ? (Number(settings.deliveryFee) || 1500) : 0;
+      const finalTotal = sum + delFee;
+      const minOrder = Number(settings.minOrderAmount) || 7000;
+      const stampMin = Number(settings.stampMinAmount) || 15000;
+
+      document.getElementById('cartSubtotalText').textContent = formatARS(sum);
+      document.getElementById('cartDeliveryText').textContent = formatARS(delFee);
+      document.getElementById('cartFinalTotalText').textContent = formatARS(finalTotal);
+
+      // Banner de Fidelidad ($15.000)
+      const loyaltyBanner = document.getElementById('cartLoyaltyBanner');
+      if (sum >= stampMin) {
+        loyaltyBanner.className = 'rounded-2xl p-3 border bg-emerald-950/40 border-emerald-500/40 text-emerald-300 text-xs font-extrabold';
+        loyaltyBanner.innerHTML = `🎉 <strong>¡Excelente!</strong> Tu compra supera los ${formatARS(stampMin)} y <strong>suma +1 Sello</strong> en el Club Maldito Flanders.`;
+      } else {
+        const diff = stampMin - sum;
+        loyaltyBanner.className = 'rounded-2xl p-3 border bg-rose-950/30 border-rose-500/30 text-rose-200 text-xs font-semibold';
+        loyaltyBanner.innerHTML = `⭐ Te faltan <strong>${formatARS(diff)}</strong> para llegar a ${formatARS(stampMin)} y sumar <strong>1 Sello de Premio</strong>.`;
+      }
+
+      // Validación de Compra Mínima ($7.000) en Delivery
+      const warnBox = document.getElementById('minOrderWarningBox');
+      const btnConfirm = document.getElementById('btnConfirmOrderWA');
+      if (isDel && sum < minOrder) {
+        const missing = minOrder - sum;
+        warnBox.classList.remove('hidden');
+        warnBox.innerHTML = `⚠️ El mínimo de compra para envío en moto es de <strong>${formatARS(minOrder)}</strong> (te faltan <strong>${formatARS(missing)}</strong>). Sumá algún producto más o elegí <em>Retiro en Local</em>.`;
+        btnConfirm.disabled = true;
+        btnConfirm.className = 'w-full py-3.5 bg-zinc-700 text-zinc-400 font-black rounded-2xl text-sm cursor-not-allowed flex items-center justify-center gap-2';
+      } else {
+        warnBox.classList.add('hidden');
+        btnConfirm.disabled = false;
+        btnConfirm.className = 'w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-black rounded-2xl text-sm shadow-lg flex items-center justify-center gap-2 transition active:scale-95';
+      }
+
+      // Cálculo de vuelto en efectivo
+      const payWithVal = Number(document.getElementById('cashPayWithInput').value) || 0;
+      const changeEl = document.getElementById('cashChangeResultText');
+      if (payWithVal > finalTotal) {
+        changeEl.textContent = `🛵 El repartidor debe llevar ${formatARS(payWithVal - finalTotal)} de vuelto`;
+        changeEl.className = 'text-[11px] font-black text-amber-400';
+      } else if (payWithVal > 0 && payWithVal < finalTotal) {
+        changeEl.textContent = `⚠️ El monto ingresado es menor al total (${formatARS(finalTotal)})`;
+        changeEl.className = 'text-[11px] font-bold text-rose-400';
+      } else {
+        changeEl.textContent = '✓ Abona con cambio justo';
+        changeEl.className = 'text-[11px] font-extrabold text-emerald-400';
+      }
+    }
+
+    function sendOrderToWhatsApp() {
+      const { sum } = getCartSubtotal();
+      const isDel = state.deliveryMode === 'delivery';
+      const minOrder = Number(settings.minOrderAmount) || 7000;
+      if (isDel && sum < minOrder) {
+        alert('El mínimo de compra para envío a domicilio es de ' + formatARS(minOrder));
+        return;
+      }
+
+      const clientName = document.getElementById('orderClientName').value.trim() || 'Cliente';
+      const street = document.getElementById('orderStreet').value.trim();
+      const cross = document.getElementById('orderCrossStreets').value.trim();
+      const notes = document.getElementById('orderNotes').value.trim();
+
+      if (isDel && !street) {
+        alert('Por favor escribí tu calle y número para que la moto lleve el pedido.');
+        document.getElementById('orderStreet').focus();
+        return;
+      }
+
+      const delFee = isDel ? (Number(settings.deliveryFee) || 1500) : 0;
+      const finalTotal = sum + delFee;
+      const stampMin = Number(settings.stampMinAmount) || 15000;
+
+      let msg = `🍻 *NUEVO PEDIDO · ${(settings.businessName || 'MALDITO FLANDERS').toUpperCase()}*\n`;
+      msg += `👤 *Cliente:* ${clientName}\n`;
+      msg += `🌡️ *Bebidas:* ${state.drinkTemp}\n`;
+      msg += `🛵 *Entrega:* ${isDel ? 'Envío a Domicilio' : 'Retira por el Local'}\n`;
+      if (isDel) {
+        msg += `📍 *Dirección:* ${street}${cross ? ' (' + cross + ')' : ''}\n`;
+      }
+      msg += `\n🛒 *DETALLE DEL PEDIDO:*\n`;
+
+      for (const [pid, qty] of Object.entries(cart)) {
+        const prod = products.find(p => p.id === pid);
+        if (prod) {
+          msg += `• ${qty}x ${prod.name} (${formatARS(prod.price * qty)})\n`;
+        }
+      }
+
+      if (notes) {
+        msg += `\n📝 *Nota:* ${notes}\n`;
+      }
+
+      msg += `\n💵 *Subtotal:* ${formatARS(sum)}\n`;
+      if (isDel) {
+        msg += `🛵 *Costo de Envío:* ${formatARS(delFee)}\n`;
+      }
+      msg += `💰 *TOTAL FINAL: ${formatARS(finalTotal)}*\n`;
+
+      if (state.paymentMethod === 'cash') {
+        const payWith = Number(document.getElementById('cashPayWithInput').value) || 0;
+        if (payWith > finalTotal) {
+          msg += `💵 *Pago:* Efectivo (Abona con ${formatARS(payWith)} 👉 *LLEVAR VUELTO: ${formatARS(payWith - finalTotal)}*)\n`;
+        } else {
+          msg += `💵 *Pago:* Efectivo (Abona justo ${formatARS(finalTotal)})\n`;
+        }
+      } else {
+        msg += `💳 *Pago:* Transferencia al Alias ` + (settings.paymentAlias || 'malditoflanders.mp') + ` (Envío comprobante)\n`;
+      }
+
+      if (sum >= stampMin) {
+        msg += `\n⭐ *Club Fidelidad:* ¡Esta compra supera los ${formatARS(stampMin)} y suma +1 Sello!`;
+      }
+
+      const phone = (settings.whatsappPhone || '').replace(/\D/g, '');
+      const waUrl = phone
+        ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+        : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
+    }
+
+    // =========================================================
+    // CONTROL DE LOS 2 REPARTIDORES (MOTO 1 Y MOTO 2)
+    // =========================================================
+    function openMotoboysModal() {
+      document.getElementById('moto1TitleLabel').textContent = '🛵 ' + (settings.moto1Name || 'Moto 1');
+      document.getElementById('moto2TitleLabel').textContent = '🛵 ' + (settings.moto2Name || 'Moto 2');
+      document.getElementById('btnSelectMoto1').textContent = '🛵 ' + (settings.moto1Name || 'Moto 1');
+      document.getElementById('btnSelectMoto2').textContent = '🛵 ' + (settings.moto2Name || 'Moto 2');
+      renderMotoboysDashboard();
+      document.getElementById('motoboysModal').classList.remove('hidden');
+    }
+
+    function closeMotoboysModal() {
+      document.getElementById('motoboysModal').classList.add('hidden');
+      applyBrandingUI();
+    }
+
+    function selectDispatchMoto(num) {
+      state.selectedDispatchMoto = num;
+      document.getElementById('btnSelectMoto1').className = num === 1
+        ? 'py-2 rounded-xl border text-xs font-black bg-emerald-500 text-zinc-950 border-emerald-400'
+        : 'py-2 rounded-xl border text-xs font-bold bg-[#14161D] text-zinc-400 border-zinc-800';
+      document.getElementById('btnSelectMoto2').className = num === 2
+        ? 'py-2 rounded-xl border text-xs font-black bg-amber-400 text-zinc-950 border-amber-400'
+        : 'py-2 rounded-xl border text-xs font-bold bg-[#14161D] text-zinc-400 border-zinc-800';
+    }
+
+    function dispatchCurrentCartToMotoboy() {
+      const { sum } = getCartSubtotal();
+      const delFee = state.deliveryMode === 'delivery' ? (Number(settings.deliveryFee) || 1500) : 0;
+      const total = sum + delFee;
+      const street = document.getElementById('orderStreet').value.trim() || document.getElementById('orderClientName').value.trim() || 'Pedido Mostrador';
+      closeCartModal();
+      openMotoboysModal();
+      document.getElementById('dispatchAddress').value = street;
+      document.getElementById('dispatchAmount').value = total;
+      document.getElementById('dispatchPayType').value = state.paymentMethod;
+    }
+
+    function addMotoboyDelivery() {
+      const address = document.getElementById('dispatchAddress').value.trim() || 'Envío Local';
+      const amount = Number(document.getElementById('dispatchAmount').value) || 0;
+      const payType = document.getElementById('dispatchPayType').value;
+
+      if (amount <= 0) {
+        alert('Ingresá el monto total del pedido que lleva la moto.');
+        return;
+      }
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit', hour12: false });
+
+      motoboyDeliveries.unshift({
+        id: 'via-' + Date.now(),
+        moto: state.selectedDispatchMoto,
+        address,
+        amount,
+        fee: Number(settings.deliveryFee) || 1500,
+        payType,
+        time: timeStr
+      });
+
+      document.getElementById('dispatchAddress').value = '';
+      document.getElementById('dispatchAmount').value = '';
+      saveMotoboysToStorage();
+      renderMotoboysDashboard();
+      showToast('🛵 Viaje asignado a Moto ' + state.selectedDispatchMoto);
+    }
+
+    function renderMotoboysDashboard() {
+      for (const m of [1, 2]) {
+        const list = motoboyDeliveries.filter(d => d.moto === m);
+        const cashSum = list.filter(d => d.payType === 'cash').reduce((a, b) => a + b.amount, 0);
+        const feeSum = list.reduce((a, b) => a + (b.fee || 0), 0);
+
+        document.getElementById(`moto${m}TripsCount`).textContent = `${list.length} viaje${list.length === 1 ? '' : 's'}`;
+        document.getElementById(`moto${m}CashTotal`).textContent = formatARS(cashSum);
+        document.getElementById(`moto${m}FeesTotal`).textContent = formatARS(feeSum);
+      }
+
+      const container = document.getElementById('motoboyDeliveriesList');
+      if (motoboyDeliveries.length === 0) {
+        container.innerHTML = '<div class="p-4 text-center text-xs text-zinc-500 bg-[#0D0E12] rounded-2xl border border-zinc-800">Todavía no hay viajes cargados en este turno.</div>';
+        return;
+      }
+
+      container.innerHTML = motoboyDeliveries.map(d => `
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5">
+              <span class="px-2 py-0.5 rounded-md font-black text-[10px] ${d.moto === 1 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
+                Moto ${d.moto}
+              </span>
+              <span class="text-zinc-500 font-mono text-[10px]">${d.time}</span>
+              <span class="font-extrabold text-white truncate">${d.address}</span>
+            </div>
+            <p class="text-[11px] mt-0.5 font-bold ${d.payType === 'cash' ? 'text-emerald-400' : 'text-sky-400'}">
+              ${formatARS(d.amount)} · ${d.payType === 'cash' ? '💵 Efectivo (rinde)' : '💳 Transferido'}
+            </p>
+          </div>
+          <button onclick="removeMotoboyDelivery('${d.id}')" class="text-zinc-500 hover:text-rose-400 px-2 font-bold">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function removeMotoboyDelivery(id) {
+      motoboyDeliveries = motoboyDeliveries.filter(d => d.id !== id);
+      saveMotoboysToStorage();
+      renderMotoboysDashboard();
+    }
+
+    function settleMotoboy(motoNum) {
+      const mName = motoNum === 1 ? settings.moto1Name : settings.moto2Name;
+      if (!confirm(`¿Confirmás que ${mName} ya rindió su efectivo de la noche? Se pondrá su cuenta en cero.`)) return;
+      motoboyDeliveries = motoboyDeliveries.filter(d => d.moto !== motoNum);
+      saveMotoboysToStorage();
+      renderMotoboysDashboard();
+      showToast(`✅ Caja de ${mName} rendida y en cero`);
+    }
+
+    function clearAllMotoboyDeliveries() {
+      if (!confirm('¿Limpiar todos los viajes de la noche de ambas motos?')) return;
+      motoboyDeliveries = [];
+      saveMotoboysToStorage();
+      renderMotoboysDashboard();
+    }
+
+    // =========================================================
+    // GENERADOR DE LISTA COMPLETA PARA WHATSAPP (1 TOQUE)
+    // =========================================================
+    function copyFullWhatsAppPriceList() {
+      let text = `*MÍNIMO DE COMPRA ${formatARS(settings.minOrderAmount || 7000)}, envío ${formatARS(settings.deliveryFee || 1500)}.*\n\n`;
+
+      CATEGORIES.forEach(cat => {
+        const items = products.filter(p => p.cat === cat.id);
+        if (items.length === 0) return;
+        text += `${cat.waTitle}\n`;
+        items.forEach(it => {
+          const stockTag = it.available === false ? ' [sin stock]' : '';
+          text += `${it.name} ${formatARS(it.price)}${stockTag}\n`;
+        });
+        text += `\n`;
+      });
+
+      text += `📲 *Pedí directo desde nuestra App Web:*\n${window.location.origin + window.location.pathname}`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('📋 ¡Lista completa copiada para pegar en WhatsApp!', '📋');
+        });
+      } else {
+        alert('Lista generada.');
+      }
+    }
+
+    // =========================================================
+    // GESTIÓN DE PRODUCTOS, STOCK Y AUMENTO POR %
+    // =========================================================
+    function toggleProductStock(pid) {
+      const prod = products.find(p => p.id === pid);
+      if (!prod) return;
+      prod.available = prod.available === false ? true : false;
+      saveProducts();
+      renderCatalog();
+      showToast(prod.available ? '🟢 Producto en Stock' : '🔴 Marcado Sin Stock');
+      pushCatalogChangesToCloud();
+    }
+
+    function promptQuickPriceEdit(pid) {
+      const prod = products.find(p => p.id === pid);
+      if (!prod) return;
+      const next = prompt(`Nuevo precio para "${prod.name}" (ARS $):`, prod.price);
+      if (next === null) return;
+      const num = Number(String(next).replace(/[^0-9]/g, ''));
+      if (num > 0) {
+        prod.price = num;
+        saveProducts();
+        renderCatalog();
+        showToast('Precio actualizado a ' + formatARS(num));
+        pushCatalogChangesToCloud();
+      }
+    }
+
+    function populateCategorySelects() {
+      const prodSel = document.getElementById('editProductCategory');
+      const bulkSel = document.getElementById('bulkCategorySelect');
+      if (prodSel) {
+        prodSel.innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+      }
+      if (bulkSel) {
+        bulkSel.innerHTML = `<option value="all">🔥 Todo el Catálogo Completo</option>` +
+          CATEGORIES.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+      }
+    }
+
+    function openNewProductModal() {
+      populateCategorySelects();
+      document.getElementById('productModalTitle').textContent = '+ Nuevo Producto o Promo';
+      document.getElementById('editProductId').value = '';
+      document.getElementById('editProductName').value = '';
+      document.getElementById('editProductPrice').value = '';
+      document.getElementById('editProductNote').value = '';
+      document.getElementById('productModal').classList.remove('hidden');
+    }
+
+    function openEditProductModal(pid) {
+      const prod = products.find(p => p.id === pid);
+      if (!prod) return;
+      populateCategorySelects();
+      document.getElementById('productModalTitle').textContent = 'Editar Producto';
+      document.getElementById('editProductId').value = prod.id;
+      document.getElementById('editProductCategory').value = prod.cat;
+      document.getElementById('editProductName').value = prod.name;
+      document.getElementById('editProductPrice').value = prod.price;
+      document.getElementById('editProductSub').value = prod.sub || '';
+      document.getElementById('editProductNote').value = prod.note || '';
+      document.getElementById('productModal').classList.remove('hidden');
+    }
+
+    function closeProductModal() {
+      document.getElementById('productModal').classList.add('hidden');
+    }
+
+    function saveProductFromModal() {
+      const id = document.getElementById('editProductId').value;
+      const cat = document.getElementById('editProductCategory').value;
+      const name = document.getElementById('editProductName').value.trim();
+      const price = Number(document.getElementById('editProductPrice').value) || 0;
+      const sub = document.getElementById('editProductSub').value;
+      const note = document.getElementById('editProductNote').value.trim();
+
+      if (!name || price <= 0) {
+        alert('Completá nombre y precio válido.');
+        return;
+      }
+
+      if (id) {
+        const prod = products.find(p => p.id === id);
+        if (prod) {
+          prod.cat = cat;
+          prod.name = name;
+          prod.price = price;
+          prod.sub = sub;
+          prod.note = note;
+        }
+      } else {
+        products.unshift({
+          id: 'prd-' + Date.now(),
+          cat,
+          sub,
+          name,
+          price,
+          available: true,
+          note
+        });
+      }
+
+      saveProducts();
+      closeProductModal();
+      renderCategoryChips();
+      renderCatalog();
+      showToast('Producto guardado');
+      pushCatalogChangesToCloud();
+    }
+
+    function deleteProduct(pid) {
+      const prod = products.find(p => p.id === pid);
+      if (!prod) return;
+      if (!confirm(`¿Eliminar "${prod.name}" del catálogo?`)) return;
+      products = products.filter(p => p.id !== pid);
+      saveProducts();
+      renderCategoryChips();
+      renderCatalog();
+      showToast('Producto eliminado', '🗑️');
+    }
+
+    function openBulkPriceModal() {
+      populateCategorySelects();
+      document.getElementById('bulkPriceModal').classList.remove('hidden');
+    }
+
+    function closeBulkPriceModal() {
+      document.getElementById('bulkPriceModal').classList.add('hidden');
+    }
+
+    function applyBulkIncrease(percent) {
+      const catId = document.getElementById('bulkCategorySelect').value;
+      const label = catId === 'all' ? 'TODO el catálogo' : CATEGORIES.find(c => c.id === catId)?.name;
+      if (!confirm(`¿Aplicar +${percent}% a ${label}? Los precios se redondearán a múltiplos de $100.`)) return;
+
+      products.forEach(p => {
+        if (catId === 'all' || p.cat === catId) {
+          const raw = p.price * (1 + percent / 100);
+          p.price = Math.round(raw / 100) * 100;
+        }
+      });
+
+      saveProducts();
+      closeBulkPriceModal();
+      renderCatalog();
+      showToast(`⚡ Precios actualizados +${percent}%`);
+      pushCatalogChangesToCloud();
+    }
+
+    // =========================================================
+    // COBRO QR ROBUSTO (DOBLE MOTOR: QRCODE.JS + QUICKCHART)
+    // =========================================================
+    function renderDualEngineQR(container, payload, size = 170) {
+      if (!container) return;
+      container.innerHTML = '';
+      let ok = false;
+      try {
+        if (typeof QRCode !== 'undefined') {
+          new QRCode(container, {
+            text: payload,
+            width: size,
+            height: size,
+            colorDark: '#090A0D',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+          });
+          ok = true;
+        }
+      } catch (e) {
+        console.warn('QR fallback activated:', e);
+      }
+      if (!ok) {
+        container.innerHTML = `<img src="https://quickchart.io/qr?text=${encodeURIComponent(payload)}&size=${size}" alt="QR" class="w-[${size}px] h-[${size}px] rounded-xl mx-auto block">`;
+      }
+    }
+
+    function openQrCobroModal() {
+      const alias = settings.paymentAlias || 'malditoflanders.mp';
+      document.getElementById('quickQrDisplayAlias').textContent = alias;
+      document.getElementById('quickQrDisplayOwner').textContent = 'Titular: ' + (settings.businessName || 'Maldito Flanders');
+      const payload = 'https://mpago.la/transfer?alias=' + encodeURIComponent(alias);
+      renderDualEngineQR(document.getElementById('quickQrCobroContainer'), payload, 170);
+      document.getElementById('qrCobroModal').classList.remove('hidden');
+    }
+
+    function closeQrCobroModal() {
+      document.getElementById('qrCobroModal').classList.add('hidden');
+    }
+
+    function copyBusinessAlias() {
+      const alias = settings.paymentAlias || 'malditoflanders.mp';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(alias).then(() => showToast('Alias copiado: ' + alias, '📋'));
+      }
+    }
+
+    function openFlyerQrModal() {
+      const url = window.location.origin + window.location.pathname;
+      document.getElementById('flyerTitle').textContent = settings.businessName || 'Maldito Flanders';
+      document.getElementById('flyerUrlText').textContent = url;
+      renderDualEngineQR(document.getElementById('flyerQrContainer'), url, 180);
+      document.getElementById('flyerQrModal').classList.remove('hidden');
+    }
+
+    function closeFlyerQrModal() {
+      document.getElementById('flyerQrModal').classList.add('hidden');
+    }
+
+    function copyCatalogLink() {
+      const url = window.location.origin + window.location.pathname;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => showToast('🔗 Link del catálogo copiado'));
+      }
+    }
+
+    // =========================================================
+    // CLUB DE FIDELIDAD Y VISTA PÚBLICA (?pass=ID)
+    // =========================================================
+    function openLoyaltyModal() {
+      const minAmt = formatARS(settings.stampMinAmount || 15000);
+      const target = settings.targetStamps || 6;
+      document.getElementById('loyaltySubtitleRule').textContent = `Cada compra desde ${minAmt} suma 1 sello`;
+      document.getElementById('loyaltyTargetBadge').textContent = `${target} sellos`;
+      document.getElementById('loyaltyRewardDisplay').textContent = settings.rewardText || '1 Bolsa de Hielo 3kg Gratis + Descuento Previa';
+      renderLoyaltyMembers();
+      document.getElementById('loyaltyModal').classList.remove('hidden');
+    }
+
+    function closeLoyaltyModal() {
+      document.getElementById('loyaltyModal').classList.add('hidden');
+    }
+
+    function addLoyaltyMember() {
+      const name = document.getElementById('newMemberName').value.trim();
+      const phone = document.getElementById('newMemberPhone').value.trim();
+      if (!name) return;
+      loyaltyMembers.unshift({
+        id: 'soc-' + Date.now(),
+        name,
+        phone,
+        stamps: 1
+      });
+      document.getElementById('newMemberName').value = '';
+      document.getElementById('newMemberPhone').value = '';
+      saveLoyaltyToStorage();
+      renderLoyaltyMembers();
+      showToast('⭐ Socio agregado con su 1° sello');
+    }
+
+    function changeMemberStamps(memberId, delta) {
+      const m = loyaltyMembers.find(x => x.id === memberId);
+      if (!m) return;
+      const target = settings.targetStamps || 6;
+      m.stamps = Math.max(0, Math.min(target, (m.stamps || 0) + delta));
+      saveLoyaltyToStorage();
+      renderLoyaltyMembers();
+      if (m.stamps === target && delta > 0) {
+        showToast('🎉 ¡Completó la tarjeta! Ganó su premio', '🎁');
+      }
+    }
+
+    function shareMemberPassWA(memberId) {
+      const m = loyaltyMembers.find(x => x.id === memberId);
+      if (!m) return;
+      const target = settings.targetStamps || 6;
+      const passUrl = `${window.location.origin}${window.location.pathname}?pass=${encodeURIComponent(m.id)}&name=${encodeURIComponent(m.name)}&stamps=${m.stamps}`;
+      const msg = `🍻 ¡Hola *${m.name}*! Acá tenés tu Tarjeta Digital de *Maldito Flanders*:\n\n⭐ Sellos acumulados: *${m.stamps} de ${target}*\n🎁 Premio: ${settings.rewardText}\n\n📲 Mirá tu pase digital acá:\n${passUrl}`;
+      const cleanPhone = (m.phone || '').replace(/\D/g, '');
+      const waUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
+    }
+
+    function renderLoyaltyMembers() {
+      const container = document.getElementById('loyaltyMembersList');
+      const target = settings.targetStamps || 6;
+      if (loyaltyMembers.length === 0) {
+        container.innerHTML = '<p class="text-xs text-zinc-500 text-center py-4">Aún no hay socios cargados.</p>';
+        return;
+      }
+
+      container.innerHTML = loyaltyMembers.map(m => {
+        const isFull = m.stamps >= target;
+        return `
+          <div class="p-3 rounded-2xl bg-[#0D0E12] border ${isFull ? 'border-amber-400' : 'border-zinc-800'} space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-black text-white">${m.name}</p>
+                <p class="text-[10px] font-bold ${isFull ? 'text-amber-400' : 'text-zinc-400'}">
+                  ${isFull ? '🎁 ¡PREMIO DISPONIBLE PARA CANJEAR!' : `Lleva ${m.stamps} de ${target} sellos`}
+                </p>
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="changeMemberStamps('${m.id}', -1)" class="w-6 h-6 rounded-lg bg-zinc-800 text-zinc-300 font-black text-xs">−</button>
+                <button onclick="changeMemberStamps('${m.id}', 1)" class="px-2 py-1 rounded-lg bg-amber-400 text-zinc-950 font-black text-[10px]">+1 Sello</button>
+                <button onclick="shareMemberPassWA('${m.id}')" class="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold text-[10px]">📲 Pase</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function checkPublicPassURL() {
+      const params = new URLSearchParams(window.location.search);
+      const passId = params.get('pass');
+      if (!passId) return;
+
+      const member = loyaltyMembers.find(x => x.id === passId) || {
+        name: params.get('name') || 'Socio Maldito Flanders',
+        stamps: Number(params.get('stamps')) || 3
+      };
+
+      const target = settings.targetStamps || 6;
+      document.getElementById('mainAppContainer').classList.add('hidden');
+      document.getElementById('publicPassView').classList.remove('hidden');
+
+      document.getElementById('passBusinessName').textContent = settings.businessName || 'Maldito Flanders';
+      document.getElementById('passClientName').textContent = member.name;
+      document.getElementById('passStampsCounter').textContent = `${member.stamps} / ${target}`;
+      document.getElementById('passRewardText').textContent = '🎁 ' + (settings.rewardText || 'Premio Club Maldito Flanders');
+      document.getElementById('passMinAmountHint').textContent = 'Sumás 1 sello en cada compra desde ' + formatARS(settings.stampMinAmount || 15000);
+
+      let gridHtml = '';
+      for (let i = 1; i <= target; i++) {
+        const active = i <= member.stamps;
+        gridHtml += `
+          <div class="h-14 rounded-2xl border flex flex-col items-center justify-center ${
+            active ? 'bg-amber-400/20 border-amber-400 text-amber-300' : 'bg-[#14161D] border-zinc-800 text-zinc-600'
+          }">
+            <span class="text-lg">${active ? '🍺' : '🔒'}</span>
+            <span class="text-[9px] font-black">#${i}</span>
+          </div>
+        `;
+      }
+      document.getElementById('passStampsGrid').innerHTML = gridHtml;
+      renderDualEngineQR(document.getElementById('passQrBox'), window.location.href, 140);
+    }
+
+    function exitPublicPassView() {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      document.getElementById('publicPassView').classList.add('hidden');
+      document.getElementById('mainAppContainer').classList.remove('hidden');
+    }
+
+    // =========================================================
+    // AJUSTES DEL LOCAL, COMPRESIÓN DE LOGO Y BACKUP JSON
+    // =========================================================
+    function openSettingsModal() {
+      document.getElementById('setBusinessName').value = settings.businessName || 'Maldito Flanders';
+      document.getElementById('setBusinessSubtitle').value = settings.businessSubtitle || '';
+      document.getElementById('setWhatsappPhone').value = settings.whatsappPhone || '';
+      document.getElementById('setPaymentAlias').value = settings.paymentAlias || 'malditoflanders.mp';
+      document.getElementById('setMinOrder').value = settings.minOrderAmount || 7000;
+      document.getElementById('setDeliveryFee').value = settings.deliveryFee || 1500;
+      document.getElementById('setStampMinAmount').value = settings.stampMinAmount || 15000;
+      document.getElementById('setIsOpen').value = String(settings.isOpen !== false);
+      document.getElementById('setMoto1Name').value = settings.moto1Name || 'Moto 1 (Repartidor 1)';
+      document.getElementById('setMoto2Name').value = settings.moto2Name || 'Moto 2 (Repartidor 2)';
+      document.getElementById('setTargetStamps').value = settings.targetStamps || 6;
+      document.getElementById('setRewardText').value = settings.rewardText || '';
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    function saveSettings() {
+      settings.businessName = document.getElementById('setBusinessName').value.trim() || 'Maldito Flanders';
+      settings.businessSubtitle = document.getElementById('setBusinessSubtitle').value.trim();
+      settings.whatsappPhone = document.getElementById('setWhatsappPhone').value.trim();
+      settings.paymentAlias = document.getElementById('setPaymentAlias').value.trim() || 'malditoflanders.mp';
+      settings.minOrderAmount = Number(document.getElementById('setMinOrder').value) || 7000;
+      settings.deliveryFee = Number(document.getElementById('setDeliveryFee').value) || 1500;
+      settings.stampMinAmount = Number(document.getElementById('setStampMinAmount').value) || 15000;
+      settings.isOpen = document.getElementById('setIsOpen').value === 'true';
+      settings.moto1Name = document.getElementById('setMoto1Name').value.trim() || 'Moto 1';
+      settings.moto2Name = document.getElementById('setMoto2Name').value.trim() || 'Moto 2';
+      settings.targetStamps = Number(document.getElementById('setTargetStamps').value) || 6;
+      settings.rewardText = document.getElementById('setRewardText').value.trim() || 'Premio Club Maldito Flanders';
+
+      saveSettingsToStorage();
+      applyBrandingUI();
+      updateFloatingCartBar();
+      closeSettingsModal();
+      showToast('Configuración guardada');
+      pushCatalogChangesToCloud();
+    }
+
+    function handleLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 320;
+          let w = img.width;
+          let h = img.height;
+          if (w > h && w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          settings.businessLogo = canvas.toDataURL('image/jpeg', 0.82);
+          saveSettingsToStorage();
+          applyBrandingUI();
+          showToast('Logo cargado y optimizado');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeBusinessLogo() {
+      settings.businessLogo = '';
+      saveSettingsToStorage();
+      applyBrandingUI();
+      showToast('Logo restaurado al ícono original');
+    }
+
+    function exportBackupJSON() {
+      const payload = {
+        app: 'maldito_flanders_bebidas',
+        exportedAt: new Date().toISOString(),
+        settings,
+        products,
+        motoboyDeliveries,
+        loyaltyMembers
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'respaldo_maldito_flanders.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Respaldo JSON descargado');
+    }
+
+    function importBackupJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.settings) settings = { ...settings, ...data.settings };
+          if (Array.isArray(data.products)) products = data.products;
+          if (Array.isArray(data.motoboyDeliveries)) motoboyDeliveries = data.motoboyDeliveries;
+          if (Array.isArray(data.loyaltyMembers)) loyaltyMembers = data.loyaltyMembers;
+          saveSettingsToStorage();
+          saveProducts();
+          saveMotoboysToStorage();
+          saveLoyaltyToStorage();
+          applyBrandingUI();
+          renderCategoryChips();
+          renderCatalog();
+          closeSettingsModal();
+          showToast('Copia restaurada con éxito');
+        } catch (err) {
+          alert('El archivo seleccionado no es un respaldo válido.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetCatalogToOriginal() {
+      if (!confirm('¿Querés restaurar los 336 productos y precios originales de Maldito Flanders?')) return;
+      products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+      saveProducts();
+      renderCategoryChips();
+      renderCatalog();
+      closeSettingsModal();
+      showToast('Catálogo original restaurado');
+    }
+
+    
+    // =========================================================
+    // SINCRONIZACIÓN EN LA NUBE (STOCK, PRECIOS Y AJUSTES EN VIVO)
+    // =========================================================
+    const FLANDERS_KV_APP = 'ozyom7gs';
+    const FLANDERS_KV_URL = 'https://keyvalue.immanuel.co/api/KeyVal';
+
+    async function kvSet(key, val) {
+      try {
+        const safeVal = encodeURIComponent(val || 'EMPTY');
+        await fetch(`${FLANDERS_KV_URL}/UpdateValue/${FLANDERS_KV_APP}/${key}/${safeVal}`, { method: 'POST' });
+      } catch (e) {
+        console.warn('Cloud sync write warn:', e);
+      }
+    }
+
+    async function kvGet(key) {
+      try {
+        const res = await fetch(`${FLANDERS_KV_URL}/GetValue/${FLANDERS_KV_APP}/${key}?t=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) return null;
+        const raw = (await res.text()).replace(/^"|"$/g, '').trim();
+        if (!raw || raw === 'null' || raw === 'EMPTY') return null;
+        return decodeURIComponent(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function pushCatalogChangesToCloud() {
+      // 1. Sincronizar Ajustes operativos (minOrder, deliveryFee, stampMin, isOpen, alias, phone)
+      const cfgStr = [
+        settings.minOrderAmount || 7000,
+        settings.deliveryFee || 1500,
+        settings.stampMinAmount || 15000,
+        settings.isOpen !== false ? '1' : '0',
+        (settings.paymentAlias || 'malditoflanders.mp').replace(/~/g, ''),
+        (settings.whatsappPhone || '').replace(/[^0-9]/g, '')
+      ].join('~');
+      await kvSet('flanders_cfg_v1', cfgStr);
+
+      // 2. Sincronizar productos Sin Stock
+      const outIds = products.filter(p => p.available === false).map(p => p.id);
+      const stockChunk1 = outIds.slice(0, 22).join('.') || 'NONE';
+      const stockChunk2 = outIds.slice(22, 44).join('.') || 'NONE';
+      await kvSet('flanders_sin_stock_1', stockChunk1);
+      await kvSet('flanders_sin_stock_2', stockChunk2);
+
+      // 3. Sincronizar precios modificados respecto del default
+      const diffs = [];
+      products.forEach(p => {
+        const def = DEFAULT_PRODUCTS.find(d => d.id === p.id);
+        if (def && Number(def.price) !== Number(p.price)) {
+          diffs.push(`${p.id}:${p.price}`);
+        }
+      });
+      for (let i = 0; i < 4; i++) {
+        const slice = diffs.slice(i * 12, (i + 1) * 12).join('.') || 'NONE';
+        await kvSet('flanders_prices_' + (i + 1), slice);
+      }
+    }
+
+    async function pullCatalogChangesFromCloud() {
+      try {
+        const [cfgRaw, st1, st2, pr1, pr2, pr3, pr4] = await Promise.all([
+          kvGet('flanders_cfg_v1'),
+          kvGet('flanders_sin_stock_1'),
+          kvGet('flanders_sin_stock_2'),
+          kvGet('flanders_prices_1'),
+          kvGet('flanders_prices_2'),
+          kvGet('flanders_prices_3'),
+          kvGet('flanders_prices_4')
+        ]);
+
+        if (cfgRaw && cfgRaw.includes('~')) {
+          const parts = cfgRaw.split('~');
+          if (Number(parts[0]) > 0) settings.minOrderAmount = Number(parts[0]);
+          if (Number(parts[1]) >= 0) settings.deliveryFee = Number(parts[1]);
+          if (Number(parts[2]) > 0) settings.stampMinAmount = Number(parts[2]);
+          settings.isOpen = parts[3] === '1';
+          if (parts[4]) settings.paymentAlias = parts[4];
+          if (parts[5]) settings.whatsappPhone = parts[5];
+          saveSettingsToStorage();
+        }
+
+        if (st1 || st2) {
+          const allOut = new Set();
+          [st1, st2].forEach(chunk => {
+            if (chunk && chunk !== 'NONE') {
+              chunk.split('.').filter(Boolean).forEach(id => allOut.add(id));
+            }
+          });
+          products.forEach(p => {
+            p.available = !allOut.has(p.id);
+          });
+        }
+
+        [pr1, pr2, pr3, pr4].forEach(chunk => {
+          if (chunk && chunk !== 'NONE') {
+            chunk.split('.').filter(Boolean).forEach(pair => {
+              const [id, val] = pair.split(':');
+              const num = Number(val);
+              if (id && num > 0) {
+                const prod = products.find(x => x.id === id);
+                if (prod) prod.price = num;
+              }
+            });
+          }
+        });
+
+        saveProducts();
+        applyBrandingUI();
+        renderCategoryChips();
+        renderCatalog();
+        updateFloatingCartBar();
+      } catch (e) {
+        console.warn('Cloud pull fallback:', e);
+      }
+    }
+
+    // =========================================================
+    // INICIALIZACIÓN
+    // =========================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadAllData();
+      applyBrandingUI();
+      renderCategoryChips();
+      renderCatalog();
+      updateArgClock();
+      setInterval(updateArgClock, 30000);
+      checkPublicPassURL();
+      pullCatalogChangesFromCloud();
+    });
+  </script>
+</body>
+</html>
