@@ -126,11 +126,11 @@
           <div onclick="openSettingsModal()" id="headerLogoContainer" class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 via-amber-500 to-rose-500 shadow-md flex-shrink-0 flex items-center justify-center text-2xl font-black overflow-hidden border border-amber-300/40 cursor-pointer">
             <span class="select-none">🍺</span>
           </div>
-          <div class="min-w-0">
-            <h1 id="headerBusinessName" class="text-lg font-black tracking-tight text-white leading-tight truncate">
+          <div class="min-w-0 flex-1">
+            <h1 id="headerBusinessName" class="text-base sm:text-lg font-black tracking-tight text-white leading-tight break-words">
               Maldito Flanders
             </h1>
-            <p id="headerSubtitle" class="text-[11px] text-amber-400 font-bold truncate mt-0.5">
+            <p id="headerSubtitle" class="text-[11px] text-amber-400 font-bold mt-0.5 leading-snug break-words">
               Bebidas, Promos, Kiosco & Delivery 🛵
             </p>
           </div>
@@ -330,16 +330,43 @@
       <!-- Alerta si no llega al mínimo de compra en Delivery ($7.000) -->
       <div id="minOrderWarningBox" class="hidden bg-rose-950/60 border border-rose-500/50 rounded-2xl p-3 text-xs text-rose-200 font-bold"></div>
 
-      <!-- Datos del Cliente y Dirección -->
+      <!-- Datos del Cliente y Dirección con Autocompletado Predictivo -->
       <div class="space-y-2.5 pt-1">
-        <input type="text" id="orderClientName" placeholder="Tu Nombre (Ej: Matías)" class="w-full px-3.5 py-2.5 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+        <div class="relative">
+          <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Tu Nombre o Apodo</label>
+          <input 
+            type="text" 
+            id="orderClientName" 
+            oninput="handleClientNameInput(this.value)"
+            autocomplete="off"
+            placeholder="Escribí tu nombre (Ej: Matías)" 
+            class="w-full px-3.5 py-2.5 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400"
+          >
+          <!-- Sugerencias de Autocompletado Flotante -->
+          <div id="clientAutocompleteList" class="hidden absolute left-0 right-0 top-full mt-1 z-30 bg-[#14161D] border border-amber-500/40 rounded-xl shadow-2xl max-h-48 overflow-y-auto divide-y divide-zinc-800"></div>
+          
+          <!-- Badge si el socio es detectado en el Club -->
+          <div id="detectedClientBadge" class="hidden mt-1.5 px-3 py-1.5 rounded-xl bg-amber-400/10 border border-amber-400/30 text-amber-300 text-[11px] font-extrabold flex items-center justify-between">
+            <span id="detectedClientText" class="leading-tight">⭐ Socio Detectado</span>
+            <button type="button" onclick="clearDetectedClient()" class="text-zinc-400 hover:text-white ml-2 text-xs">✕</button>
+          </div>
+        </div>
         
         <div id="deliveryAddressFields" class="space-y-2">
-          <input type="text" id="orderStreet" placeholder="Calle y Número (Ej: Av. San Martín 1450)" class="w-full px-3.5 py-2.5 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
-          <input type="text" id="orderCrossStreets" placeholder="Entre calles / Piso / Referencia de la casa" class="w-full px-3.5 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Calle y Número</label>
+            <input type="text" id="orderStreet" placeholder="Ej: Av. San Martín 1450" class="w-full px-3.5 py-2.5 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Entre calles / Piso / Referencia</label>
+            <input type="text" id="orderCrossStreets" placeholder="Ej: Entre Belgrano y Jujuy / Dpto 4B" class="w-full px-3.5 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+          </div>
         </div>
 
-        <input type="text" id="orderNotes" placeholder="Aclaración opcional (Ej: Coca común, sabor del vaper o chocolate)" class="w-full px-3.5 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Aclaración opcional</label>
+          <input type="text" id="orderNotes" placeholder="Ej: Coca común, sabor del vaper o hielo extra" class="w-full px-3.5 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+        </div>
       </div>
 
       <!-- Forma de Pago y Cálculo de Vuelto para el Repartidor -->
@@ -389,14 +416,22 @@
         </div>
       </div>
 
-      <!-- Botones Finales -->
-      <div class="space-y-2">
+      <!-- Botones Finales: Confirmar WhatsApp, Cancelar Pedido, Asignar Moto -->
+      <div class="space-y-2 pt-1">
         <button 
           id="btnConfirmOrderWA"
           onclick="sendOrderToWhatsApp()" 
           class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-black rounded-2xl text-sm shadow-lg flex items-center justify-center gap-2 transition active:scale-95"
         >
           <span>📲 Enviar Pedido por WhatsApp</span>
+        </button>
+
+        <button 
+          type="button" 
+          onclick="cancelCurrentOrder()" 
+          class="w-full py-2.5 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95"
+        >
+          <span>❌ Cancelar Pedido</span>
         </button>
 
         <div class="flex items-center justify-between gap-2 pt-1">
@@ -565,14 +600,53 @@
         <p id="loyaltyRewardDisplay" class="text-sm font-black text-white">1 Bolsa de Hielo 3kg Gratis + Descuento en Combo Previa</p>
       </div>
 
-      <!-- Agregar / Buscar Cliente del Club -->
-      <div class="flex gap-2">
-        <input type="text" id="newMemberName" placeholder="Nombre del cliente (Ej: Lucas)" class="flex-1 px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white">
-        <input type="tel" id="newMemberPhone" placeholder="WhatsApp (opcional)" class="w-36 px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white">
-        <button onclick="addLoyaltyMember()" class="px-3.5 py-2 bg-amber-400 text-zinc-950 font-black rounded-xl text-xs shrink-0">+ Socio</button>
+      <!-- Agregar / Registrar Cliente del Club -->
+      <div class="space-y-2 bg-[#0D0E12] border border-zinc-800 rounded-2xl p-3">
+        <span class="block text-[11px] font-black text-amber-400 uppercase tracking-wider">+ Nuevo Socio al Club</span>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="newMemberName" placeholder="Nombre / Apodo" class="px-3 py-2 rounded-xl bg-[#14161D] border border-zinc-700 text-xs font-semibold text-white">
+          <input type="tel" id="newMemberPhone" placeholder="WhatsApp (Ej: 351...)" class="px-3 py-2 rounded-xl bg-[#14161D] border border-zinc-700 text-xs font-semibold text-white">
+        </div>
+        <div class="flex gap-2">
+          <input type="text" id="newMemberAddress" placeholder="Dirección habitual (Ej: San Martín 1450)" class="flex-1 px-3 py-2 rounded-xl bg-[#14161D] border border-zinc-700 text-xs font-semibold text-white">
+          <button onclick="addLoyaltyMember()" class="px-3.5 py-2 bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black rounded-xl text-xs shrink-0">+ Registrar</button>
+        </div>
       </div>
 
       <div id="loyaltyMembersList" class="space-y-2.5 max-h-72 overflow-y-auto pr-1"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL: EDITAR DATOS DE SOCIO DEL CLUB                     -->
+  <!-- ========================================================= -->
+  <div id="editMemberModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/85 modal-backdrop hidden">
+    <div class="bg-[#14161D] border border-amber-500/40 text-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-3.5">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+        <h3 class="text-sm font-black text-white flex items-center gap-1.5">✏️ Editar Datos del Socio</h3>
+        <button onclick="closeEditMemberModal()" class="w-7 h-7 rounded-full bg-zinc-800 text-zinc-400 text-xs font-bold">✕</button>
+      </div>
+      <input type="hidden" id="editMemberId">
+      <div>
+        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Nombre completo / Apodo</label>
+        <input type="text" id="editMemberName" placeholder="Ej: Matías" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">WhatsApp (con código de área)</label>
+        <input type="tel" id="editMemberPhone" placeholder="Ej: 3512345678" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Dirección habitual (para envíos)</label>
+        <input type="text" id="editMemberAddress" placeholder="Ej: Av. San Martín 1450 Piso 3B" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white focus:outline-none focus:border-amber-400">
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Sellos acumulados</label>
+        <input type="number" id="editMemberStamps" min="0" max="20" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-black text-amber-400">
+      </div>
+      <div class="flex items-center gap-2 pt-1">
+        <button onclick="closeEditMemberModal()" class="flex-1 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs">Cancelar</button>
+        <button onclick="saveEditedMember()" class="flex-1 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black text-xs">Guardar Cambios</button>
+      </div>
     </div>
   </div>
 
@@ -780,7 +854,8 @@
       SETTINGS: 'flanders_settings_v1',
       PRODUCTS: 'flanders_products_v1',
       MOTOBOYS: 'flanders_motoboys_v1',
-      LOYALTY: 'flanders_loyalty_v1'
+      LOYALTY: 'flanders_loyalty_v1',
+      SALES: 'flanders_sales_v1'
     };
 
     let settings = {
@@ -802,9 +877,10 @@
     let products = [];
     let cart = {}; // { productId: qty }
     let motoboyDeliveries = [];
+    let salesHistory = []; // { id, orderId, productId, productName, qty, unitPrice, date, time, channel, clientName }
     let loyaltyMembers = [
-      { id: 'soc-1', name: 'Matías (Cliente Frecuente)', phone: '', stamps: 4 },
-      { id: 'soc-2', name: 'Agustín (Previa Viernes)', phone: '', stamps: 2 }
+      { id: 'soc-1', name: 'Matías (Cliente Frecuente)', phone: '3512345678', address: 'Av. San Martín 1450', stamps: 4 },
+      { id: 'soc-2', name: 'Agustín (Previa Viernes)', phone: '3519876543', address: 'Bv. Chacabuco 620 Piso 4A', stamps: 2 }
     ];
 
     let state = {
@@ -882,6 +958,13 @@
         const l = localStorage.getItem(STORAGE_KEYS.LOYALTY);
         if (l) loyaltyMembers = JSON.parse(l);
       } catch (e) {}
+
+      try {
+        const s = localStorage.getItem(STORAGE_KEYS.SALES);
+        if (s) salesHistory = JSON.parse(s);
+      } catch (e) {}
+
+      recalculateAllProductSalesCounts();
     }
 
     function saveProducts() {
@@ -898,6 +981,60 @@
 
     function saveLoyaltyToStorage() {
       localStorage.setItem(STORAGE_KEYS.LOYALTY, JSON.stringify(loyaltyMembers));
+    }
+
+    function saveSalesToStorage() {
+      localStorage.setItem(STORAGE_KEYS.SALES, JSON.stringify(salesHistory));
+    }
+
+    function recalculateAllProductSalesCounts() {
+      const counts = {};
+      salesHistory.forEach(sale => {
+        const pid = sale.productId;
+        if (pid) {
+          counts[pid] = (counts[pid] || 0) + (Number(sale.qty) || 1);
+        }
+      });
+      products.forEach(p => {
+        p.salesCount = counts[p.id] || 0;
+      });
+    }
+
+    function recordSalesFromCurrentCart(channel = 'whatsapp', client = '') {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('es-AR', {
+        timeZone: 'America/Argentina/Buenos_Aires',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+      const dateStr = now.toLocaleDateString('es-AR', {
+        timeZone: 'America/Argentina/Buenos_Aires'
+      });
+      const orderId = 'ord-' + Date.now();
+
+      for (const [pid, qty] of Object.entries(cart)) {
+        const prod = products.find(p => p.id === pid);
+        if (!prod) continue;
+        const numQty = Number(qty) || 1;
+        salesHistory.unshift({
+          id: 'vta-' + Date.now() + '-' + pid,
+          orderId,
+          productId: pid,
+          productName: prod.name,
+          qty: numQty,
+          unitPrice: prod.price,
+          date: dateStr,
+          time: timeStr,
+          channel,
+          clientName: client || 'Cliente Mostrador'
+        });
+        prod.salesCount = (prod.salesCount || 0) + numQty;
+      }
+
+      saveSalesToStorage();
+      saveProducts();
+      renderCatalog();
     }
 
     // =========================================================
@@ -1073,8 +1210,24 @@
         if (items.length === 0) return;
         totalMatched += items.length;
 
-        // Ordenar: disponibles primero, sin stock al final
-        items.sort((a, b) => (a.available === b.available ? 0 : a.available ? -1 : 1));
+        // Ordenar según ventas y disponibilidad:
+        // 1. Disponibles primero, Sin Stock al final
+        // 2. Entre disponibles: Mayor cantidad de ventas primero (de mayor a menor)
+        // 3. Productos con 0 ventas se ubican a continuación
+        items.sort((a, b) => {
+          const aAvail = a.available !== false;
+          const bAvail = b.available !== false;
+          if (aAvail !== bAvail) return aAvail ? -1 : 1;
+
+          if (aAvail) {
+            const aSales = Number(a.salesCount) || 0;
+            const bSales = Number(b.salesCount) || 0;
+            if (bSales !== aSales) {
+              return bSales - aSales; // De mayor a menor ventas
+            }
+          }
+          return 0;
+        });
 
         const isCollapsed = !q && state.selectedCategory === 'all' && Boolean(state.collapsedCategories[cat.id]);
 
@@ -1114,13 +1267,21 @@
     function renderProductRow(item) {
       const qty = cart[item.id] || 0;
       const isAvail = item.available !== false;
+      const salesCount = Number(item.salesCount) || 0;
 
       if (state.ownerMode) {
         return `
           <div class="p-3 flex items-center justify-between gap-2 ${isAvail ? '' : 'bg-zinc-900/60 opacity-75'}">
             <div class="min-w-0 flex-1">
-              <p class="text-xs font-extrabold text-white leading-snug">${item.name}</p>
-              ${item.note ? `<p class="text-[10px] text-zinc-400">${item.note}</p>` : ''}
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <p class="text-xs font-extrabold text-white leading-snug break-words">${item.name}</p>
+                ${salesCount > 0 ? `
+                  <span class="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0">
+                    🔥 ${salesCount} vendid${salesCount === 1 ? 'o' : 'os'}
+                  </span>
+                ` : ''}
+              </div>
+              ${item.note ? `<p class="text-[10px] text-zinc-400 leading-tight mt-0.5 break-words">${item.note}</p>` : ''}
               <div class="flex items-center gap-2 mt-1.5">
                 <button onclick="promptQuickPriceEdit('${item.id}')" class="px-2 py-0.5 rounded-lg bg-amber-400/20 border border-amber-400/40 text-amber-300 font-black text-xs">
                   ✏️ ${formatARS(item.price)}
@@ -1142,7 +1303,7 @@
         return `
           <div class="px-3.5 py-2.5 flex items-center justify-between gap-2 bg-zinc-900/40 opacity-55">
             <div class="min-w-0 flex-1">
-              <p class="text-xs font-bold text-zinc-400 line-through leading-snug">${item.name}</p>
+              <p class="text-xs font-bold text-zinc-400 line-through leading-snug break-words">${item.name}</p>
               <span class="inline-block text-[10px] font-black text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-md mt-0.5">${formatARS(item.price)}</span>
             </div>
             <span class="px-2.5 py-1 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-400 font-extrabold text-[10px] uppercase shrink-0">
@@ -1155,8 +1316,15 @@
       return `
         <div class="px-3.5 py-2.5 flex items-center justify-between gap-2.5 hover:bg-zinc-800/30 transition">
           <div class="min-w-0 flex-1">
-            <p class="text-xs font-extrabold text-white leading-snug">${item.name}</p>
-            ${item.note ? `<p class="text-[10px] text-zinc-400 truncate">${item.note}</p>` : ''}
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <p class="text-xs font-extrabold text-white leading-snug break-words">${item.name}</p>
+              ${salesCount > 0 ? `
+                <span class="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0">
+                  🔥 ${salesCount} vendid${salesCount === 1 ? 'o' : 'os'}
+                </span>
+              ` : ''}
+            </div>
+            ${item.note ? `<p class="text-[10px] text-zinc-400 leading-tight mt-0.5 break-words">${item.note}</p>` : ''}
             <p class="text-xs font-black text-amber-400 mt-0.5">${formatARS(item.price)}</p>
           </div>
 
@@ -1250,11 +1418,97 @@
       document.getElementById('cartModal').classList.add('hidden');
     }
 
-    function clearCart() {
+    function cancelCurrentOrder() {
+      const { count } = getCartSubtotal();
+      if (count === 0) {
+        closeCartModal();
+        return;
+      }
+      if (!confirm('¿Deseás cancelar y vaciar este pedido?')) return;
       cart = {};
+      document.getElementById('orderClientName').value = '';
+      document.getElementById('orderStreet').value = '';
+      document.getElementById('orderCrossStreets').value = '';
+      document.getElementById('orderNotes').value = '';
+      document.getElementById('cashPayWithInput').value = '';
+      clearDetectedClient();
       closeCartModal();
       renderCatalog();
       updateFloatingCartBar();
+      showToast('Pedido cancelado', '❌');
+    }
+
+    function clearCart() {
+      if (Object.keys(cart).length === 0) return;
+      if (!confirm('¿Vaciar todos los productos del carrito?')) return;
+      cart = {};
+      clearDetectedClient();
+      closeCartModal();
+      renderCatalog();
+      updateFloatingCartBar();
+      showToast('Carrito vaciado', '🗑️');
+    }
+
+    // Autocompletado Predictivo de Clientes / Socios en Pantalla de Pedido
+    function handleClientNameInput(val) {
+      const q = (val || '').trim().toLowerCase();
+      const listEl = document.getElementById('clientAutocompleteList');
+      if (!q || q.length < 1) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+        return;
+      }
+
+      const matches = loyaltyMembers.filter(m => m.name && m.name.toLowerCase().includes(q));
+      if (matches.length === 0) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+        return;
+      }
+
+      const target = settings.targetStamps || 6;
+      listEl.innerHTML = matches.slice(0, 5).map(m => `
+        <div onclick="selectAutocompleteClient('${m.id}')" class="p-2.5 hover:bg-zinc-800 cursor-pointer flex items-center justify-between text-xs transition">
+          <div class="min-w-0 pr-2">
+            <p class="font-extrabold text-white leading-snug break-words">${m.name}</p>
+            <p class="text-[10px] text-zinc-400 mt-0.5 break-words">${m.address ? '📍 ' + m.address : (m.phone ? '📞 ' + m.phone : 'Socio registrado')}</p>
+          </div>
+          <span class="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black shrink-0">
+            ⭐ ${m.stamps}/${target}
+          </span>
+        </div>
+      `).join('');
+      listEl.classList.remove('hidden');
+    }
+
+    function selectAutocompleteClient(memberId) {
+      const m = loyaltyMembers.find(x => x.id === memberId);
+      if (!m) return;
+      document.getElementById('orderClientName').value = m.name;
+      if (m.address) {
+        document.getElementById('orderStreet').value = m.address;
+      }
+
+      const badge = document.getElementById('detectedClientBadge');
+      const text = document.getElementById('detectedClientText');
+      const target = settings.targetStamps || 6;
+      text.textContent = `⭐ ¡Hola ${m.name}! Tenés ${m.stamps} de ${target} sellos acumulados`;
+      badge.classList.remove('hidden');
+
+      const listEl = document.getElementById('clientAutocompleteList');
+      listEl.classList.add('hidden');
+      listEl.innerHTML = '';
+      showToast('Cliente autocompletado ⭐');
+    }
+
+    function clearDetectedClient() {
+      const badge = document.getElementById('detectedClientBadge');
+      if (badge) badge.classList.add('hidden');
+      const listEl = document.getElementById('clientAutocompleteList');
+      if (listEl) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+      }
     }
 
     function setDrinkTemp(temp) {
@@ -1317,7 +1571,7 @@
         return `
           <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#0D0E12] border border-zinc-800 gap-2">
             <div class="min-w-0 flex-1">
-              <p class="text-xs font-extrabold text-white truncate">${prod.name}</p>
+              <p class="text-xs font-extrabold text-white leading-tight break-words">${prod.name}</p>
               <p class="text-[11px] font-bold text-amber-400">${formatARS(prod.price)} c/u · Sub: ${formatARS(prod.price * qty)}</p>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
@@ -1455,6 +1709,25 @@
         ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
         : `https://wa.me/?text=${encodeURIComponent(msg)}`;
       window.open(waUrl, '_blank');
+
+      // Registrar venta en historial y actualizar ranking de productos
+      recordSalesFromCurrentCart('whatsapp', clientName);
+
+      // Si el cliente es socio y sumó compra >= stampMin, registrar sello automáticamente
+      if (sum >= stampMin) {
+        const foundMember = loyaltyMembers.find(m => m.name.toLowerCase() === clientName.toLowerCase());
+        if (foundMember) {
+          changeMemberStamps(foundMember.id, 1);
+        }
+      }
+
+      // Vaciar carrito y cerrar modal tras confirmar
+      cart = {};
+      clearDetectedClient();
+      closeCartModal();
+      renderCatalog();
+      updateFloatingCartBar();
+      showToast('¡Pedido registrado y enviado por WhatsApp! 📲');
     }
 
     // =========================================================
@@ -1518,6 +1791,13 @@
         payType,
         time: timeStr
       });
+
+      if (Object.keys(cart).length > 0) {
+        recordSalesFromCurrentCart('moto' + state.selectedDispatchMoto, address);
+        cart = {};
+        clearDetectedClient();
+        updateFloatingCartBar();
+      }
 
       document.getElementById('dispatchAddress').value = '';
       document.getElementById('dispatchAmount').value = '';
@@ -1847,18 +2127,24 @@
     function addLoyaltyMember() {
       const name = document.getElementById('newMemberName').value.trim();
       const phone = document.getElementById('newMemberPhone').value.trim();
-      if (!name) return;
+      const address = document.getElementById('newMemberAddress') ? document.getElementById('newMemberAddress').value.trim() : '';
+      if (!name) {
+        alert('Ingresá el nombre o apodo del socio');
+        return;
+      }
       loyaltyMembers.unshift({
         id: 'soc-' + Date.now(),
         name,
         phone,
+        address,
         stamps: 1
       });
       document.getElementById('newMemberName').value = '';
       document.getElementById('newMemberPhone').value = '';
+      if (document.getElementById('newMemberAddress')) document.getElementById('newMemberAddress').value = '';
       saveLoyaltyToStorage();
       renderLoyaltyMembers();
-      showToast('⭐ Socio agregado con su 1° sello');
+      showToast('⭐ Socio registrado con su 1° sello');
     }
 
     function changeMemberStamps(memberId, delta) {
@@ -1893,25 +2179,87 @@
       }
 
       container.innerHTML = loyaltyMembers.map(m => {
-        const isFull = m.stamps >= target;
+        const isFull = (m.stamps || 0) >= target;
         return `
           <div class="p-3 rounded-2xl bg-[#0D0E12] border ${isFull ? 'border-amber-400' : 'border-zinc-800'} space-y-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-xs font-black text-white">${m.name}</p>
-                <p class="text-[10px] font-bold ${isFull ? 'text-amber-400' : 'text-zinc-400'}">
-                  ${isFull ? '🎁 ¡PREMIO DISPONIBLE PARA CANJEAR!' : `Lleva ${m.stamps} de ${target} sellos`}
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <p class="text-xs font-black text-white leading-snug break-words">${m.name}</p>
+                ${m.address ? `<p class="text-[10px] text-zinc-400 mt-0.5 break-words">📍 ${m.address}</p>` : ''}
+                ${m.phone ? `<p class="text-[10px] text-zinc-500 break-words">📞 ${m.phone}</p>` : ''}
+                <p class="text-[10px] font-bold mt-1 ${isFull ? 'text-amber-400' : 'text-zinc-400'}">
+                  ${isFull ? '🎁 ¡PREMIO DISPONIBLE PARA CANJEAR!' : `Lleva ${m.stamps || 0} de ${target} sellos`}
                 </p>
               </div>
-              <div class="flex items-center gap-1">
-                <button onclick="changeMemberStamps('${m.id}', -1)" class="w-6 h-6 rounded-lg bg-zinc-800 text-zinc-300 font-black text-xs">−</button>
-                <button onclick="changeMemberStamps('${m.id}', 1)" class="px-2 py-1 rounded-lg bg-amber-400 text-zinc-950 font-black text-[10px]">+1 Sello</button>
-                <button onclick="shareMemberPassWA('${m.id}')" class="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold text-[10px]">📲 Pase</button>
+              <div class="flex flex-col items-end gap-1.5 shrink-0">
+                <div class="flex items-center gap-1">
+                  <button onclick="changeMemberStamps('${m.id}', -1)" title="Restar sello" class="w-6 h-6 rounded-lg bg-zinc-800 text-zinc-300 font-black text-xs hover:bg-zinc-700">−</button>
+                  <button onclick="changeMemberStamps('${m.id}', 1)" class="px-2 py-1 rounded-lg bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black text-[10px]">+1 Sello</button>
+                  <button onclick="shareMemberPassWA('${m.id}')" title="Enviar pase por WhatsApp" class="px-2 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 font-bold text-[10px]">📲 Pase</button>
+                </div>
+                <div class="flex items-center gap-1.5 pt-0.5">
+                  <button onclick="openEditMemberModal('${m.id}')" class="px-2 py-0.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-zinc-700 text-[10px] font-bold flex items-center gap-1">
+                    ✏️ Editar
+                  </button>
+                  <button onclick="deleteLoyaltyMember('${m.id}')" class="px-2 py-0.5 rounded-lg bg-zinc-800 hover:bg-rose-900/40 text-rose-400 border border-zinc-700 text-[10px] font-bold flex items-center gap-1">
+                    🗑️ Borrar
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    function openEditMemberModal(memberId) {
+      const m = loyaltyMembers.find(x => x.id === memberId);
+      if (!m) return;
+      document.getElementById('editMemberId').value = m.id;
+      document.getElementById('editMemberName').value = m.name || '';
+      document.getElementById('editMemberPhone').value = m.phone || '';
+      document.getElementById('editMemberAddress').value = m.address || '';
+      document.getElementById('editMemberStamps').value = m.stamps || 0;
+      document.getElementById('editMemberModal').classList.remove('hidden');
+    }
+
+    function closeEditMemberModal() {
+      document.getElementById('editMemberModal').classList.add('hidden');
+    }
+
+    function saveEditedMember() {
+      const id = document.getElementById('editMemberId').value;
+      const name = document.getElementById('editMemberName').value.trim();
+      const phone = document.getElementById('editMemberPhone').value.trim();
+      const address = document.getElementById('editMemberAddress').value.trim();
+      const stamps = Math.max(0, Number(document.getElementById('editMemberStamps').value) || 0);
+
+      if (!name) {
+        alert('Ingresá el nombre o apodo del socio');
+        return;
+      }
+
+      const m = loyaltyMembers.find(x => x.id === id);
+      if (m) {
+        m.name = name;
+        m.phone = phone;
+        m.address = address;
+        m.stamps = stamps;
+        saveLoyaltyToStorage();
+        renderLoyaltyMembers();
+        closeEditMemberModal();
+        showToast('Socio actualizado');
+      }
+    }
+
+    function deleteLoyaltyMember(memberId) {
+      const m = loyaltyMembers.find(x => x.id === memberId);
+      if (!m) return;
+      if (!confirm(`¿Eliminar al socio "${m.name}" del Club de Fidelidad?`)) return;
+      loyaltyMembers = loyaltyMembers.filter(x => x.id !== memberId);
+      saveLoyaltyToStorage();
+      renderLoyaltyMembers();
+      showToast('Socio eliminado', '🗑️');
     }
 
     function checkPublicPassURL() {
@@ -2047,7 +2395,8 @@
         settings,
         products,
         motoboyDeliveries,
-        loyaltyMembers
+        loyaltyMembers,
+        salesHistory
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -2070,6 +2419,11 @@
           if (Array.isArray(data.products)) products = data.products;
           if (Array.isArray(data.motoboyDeliveries)) motoboyDeliveries = data.motoboyDeliveries;
           if (Array.isArray(data.loyaltyMembers)) loyaltyMembers = data.loyaltyMembers;
+          if (Array.isArray(data.salesHistory)) {
+            salesHistory = data.salesHistory;
+            saveSalesToStorage();
+            recalculateAllProductSalesCounts();
+          }
           saveSettingsToStorage();
           saveProducts();
           saveMotoboysToStorage();

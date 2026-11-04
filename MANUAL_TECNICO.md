@@ -19,9 +19,10 @@ Documentación de arquitectura, modelo de datos, sincronización en la nube y l�
 
 ### Llaves Locales (`localStorage`)
 - `flanders_settings_v1`: Objeto de configuración general (`businessName`, `whatsappPhone`, `paymentAlias`, `minOrderAmount`, `deliveryFee`, `stampMinAmount`, `moto1Name`, `moto2Name`, `isOpen`, `businessLogo`, `targetStamps`, `rewardText`).
-- `flanders_products_v1`: Array con los **336 productos y promos** estructurados en 16 categorías (`promos`, `hielo`, `cervezas`, `botellas`, `vinos`, `whisky`, `espumantes`, `licores`, `gaseosas`, `hierbas`, `snacks`, `chocolates`, `chicles`, `postres`, `vapers`, `cigarrillos`).
+- `flanders_products_v1`: Array con los **336 productos y promos** estructurados en 16 categorías (`promos`, `hielo`, `cervezas`, `botellas`, `vinos`, `whisky`, `espumantes`, `licores`, `gaseosas`, `hierbas`, `snacks`, `chocolates`, `chicles`, `postres`, `vapers`, `cigarrillos`). Cada producto contiene `salesCount` calculado.
 - `flanders_motoboys_v1`: Registro activo de viajes asignados a **Moto 1** y **Moto 2** para cálculo de efectivo a rendir y comisiones de envío.
-- `flanders_loyalty_v1`: Listado de socios del Club de Fidelidad y sus sellos acumulados.
+- `flanders_loyalty_v1`: Listado de socios del Club de Fidelidad (`id`, `name`, `phone`, `address`, `stamps`).
+- `flanders_sales_v1`: Historial de ventas registradas (`id`, `orderId`, `productId`, `productName`, `qty`, `unitPrice`, `date`, `time`, `channel`, `clientName`) con relación 1:N hacia `products`.
 
 ### Llaves en la Nube (Cloud KV)
 - `flanders_cfg_v1`: Cadena compacta `minOrder~deliveryFee~stampMin~isOpen~alias~phone`.
@@ -32,14 +33,25 @@ Documentación de arquitectura, modelo de datos, sincronización en la nube y l�
 
 ## ⚙️ 3. Reglas de Negocio Implementadas
 
-1. **Validación Estricta de Compra Mínima ($7.000 ARS) en Delivery:**
+1. **Ranking Automático por Frecuencia de Ventas:**
+   - La función `recordSalesFromCurrentCart()` almacena las transacciones en `salesHistory` y actualiza `salesCount` en cada ítem.
+   - Algoritmo de ordenamiento en `renderCatalog()`:
+     1. Filtra disponibilidad: `available: true` primero, `available: false` (sin stock) al final.
+     2. Para disponibles: Ordena descendentemente por `salesCount` (`b.salesCount - a.salesCount`).
+     3. Productos con 0 ventas se ubican a continuación de los vendidos, manteniendo su posición original.
+2. **Autocompletado Predictivo de Clientes:**
+   - Listener reactivo sobre `#orderClientName` ejecutando búsqueda con `includes()` sobre `loyaltyMembers`.
+   - Al seleccionar un socio: inyecta automáticamente su nombre, dirección habitual (`#orderStreet`) y despliega su saldo de sellos.
+3. **Cancelación Segura de Pedidos:**
+   - `cancelCurrentOrder()` realiza limpieza total de estado en memoria del carrito y resetea los campos del formulario tras confirmación.
+4. **Validación Estricta de Compra Mínima ($7.000 ARS) en Delivery:**
    - En modo `delivery`, si `subtotal < settings.minOrderAmount`, el botón `#btnConfirmOrderWA` se deshabilita (`disabled = true`) y renderiza `#minOrderWarningBox` indicando la diferencia exacta en ARS `$`.
    - En modo `takeaway` (Retiro en local), se omite la restricción y el costo de envío pasa a `$0`.
-2. **Termómetro de Fidelidad (Piso $15.000 ARS):**
+5. **Termómetro de Fidelidad (Piso $15.000 ARS):**
    - Evalúa en tiempo real `subtotal >= settings.stampMinAmount`. Si no alcanza el piso, calcula `stampMinAmount - subtotal` para estimular el up-selling dentro del modal del carrito.
-3. **Liquidación de Repartidores (`Moto 1` y `Moto 2`):**
+6. **Liquidación de Repartidores (`Moto 1` y `Moto 2`):**
    - Separa los pedidos por `moto` (`1` o `2`) y discrimina `payType === 'cash'` (suma al efectivo a rendir por el cadete) vs `payType === 'transfer'` (no suma efectivo en mano, pero sí contabiliza el viaje y el envío).
-4. **Vista Pública de Pase Digital (`?pass=ID`):**
+7. **Vista Pública de Pase Digital (`?pass=ID`):**
    - Si la URL contiene el parámetro `?pass=`, oculta `#mainAppContainer` y muestra `#publicPassView` en modo solo lectura sin exponer controles administrativos.
 
 ---
