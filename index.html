@@ -241,18 +241,29 @@
         <button id="btnClearSearch" onclick="clearSearch()" class="hidden absolute right-2.5 w-5 h-5 rounded-full bg-zinc-700 text-zinc-300 text-[10px] font-bold flex items-center justify-center">✕</button>
       </div>
 
-      <!-- Carrusel de Categorías Principales -->
-      <div id="categoryChipsContainer" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5"></div>
+      <!-- Barra de Categorías Top + Desplegable Prolijo (Cero Textos Cortados) -->
+      <div id="categoryBarWrapper" class="relative">
+        <div id="categoryChipsContainer" class="flex items-center gap-1.5 flex-wrap"></div>
+        
+        <!-- Desplegable Flotante con las Categorías -->
+        <div id="allCategoriesDropdown" class="hidden absolute left-0 right-0 top-full mt-1.5 z-30 bg-[#14161D] border border-amber-500/40 rounded-2xl shadow-2xl p-2.5 max-h-72 overflow-y-auto no-scrollbar">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-zinc-800">
+            <span class="text-[11px] font-black uppercase text-amber-400">Todas las Categorías</span>
+            <button type="button" onclick="toggleCategoriesDropdown(false)" class="text-xs text-zinc-400 hover:text-white px-2 py-0.5">✕ Cerrar</button>
+          </div>
+          <div id="allCategoriesGrid" class="grid grid-cols-2 gap-1.5"></div>
+        </div>
+      </div>
 
-      <!-- Sub-filtros de Promos (Fernet / Vodka / Gin / Ron / Aperitivos / Vino) -->
-      <div id="promoSubfiltersContainer" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
-        <button onclick="setPromoSubfilter('all')" data-sub="all" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-400 text-zinc-950 shrink-0">Todas las Promos</button>
-        <button onclick="setPromoSubfilter('fernet')" data-sub="fernet" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0">🦅 Fernet</button>
-        <button onclick="setPromoSubfilter('vodka')" data-sub="vodka" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0">🍸 Smirnoff / Skyy / Vodka</button>
-        <button onclick="setPromoSubfilter('gin')" data-sub="gin" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0">🌿 Gin & Ginebra</button>
-        <button onclick="setPromoSubfilter('ron')" data-sub="ron" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0">🥃 Ron & Whisky</button>
-        <button onclick="setPromoSubfilter('aperitivo')" data-sub="aperitivo" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0">🍊 Gancia / Aperol / Jagger</button>
-        <button onclick="setPromoSubfilter('vino')" data-sub="vino" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0">🍷 Vino + Pritty / Coca</button>
+      <!-- Sub-filtros de Promos (Flex Wrap: NUNCA se cortan los nombres) -->
+      <div id="promoSubfiltersContainer" class="flex items-center gap-1.5 flex-wrap pt-0.5">
+        <button onclick="setPromoSubfilter('all')" data-sub="all" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-400 text-zinc-950">Todas</button>
+        <button onclick="setPromoSubfilter('fernet')" data-sub="fernet" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800">🦅 Fernet</button>
+        <button onclick="setPromoSubfilter('vodka')" data-sub="vodka" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800">🍸 Vodkas</button>
+        <button onclick="setPromoSubfilter('gin')" data-sub="gin" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800">🌿 Gin</button>
+        <button onclick="setPromoSubfilter('ron')" data-sub="ron" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800">🥃 Ron / Whisky</button>
+        <button onclick="setPromoSubfilter('aperitivo')" data-sub="aperitivo" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800">🍊 Aperitivos</button>
+        <button onclick="setPromoSubfilter('vino')" data-sub="vino" class="promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800">🍷 Vinos</button>
       </div>
     </div>
 
@@ -1104,9 +1115,15 @@
     // =========================================================
     function renderCategoryChips() {
       const container = document.getElementById('categoryChipsContainer');
+      const dropdownGrid = document.getElementById('allCategoriesGrid');
       const totalCount = products.length;
+
+      const topCatIds = ['promos', 'hielo', 'cervezas'];
+      const isTopSelected = state.selectedCategory === 'all' || topCatIds.includes(state.selectedCategory);
+      const currentCatObj = CATEGORIES.find(c => c.id === state.selectedCategory);
+
       let html = `
-        <button onclick="selectCategory('all')" class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 transition ${
+        <button onclick="selectCategory('all')" class="px-3 py-1.5 rounded-xl text-xs font-black transition ${
           state.selectedCategory === 'all'
             ? 'bg-amber-400 text-zinc-950 shadow-sm'
             : 'bg-[#14161D] text-zinc-300 border border-zinc-800 hover:border-zinc-700'
@@ -1115,23 +1132,60 @@
         </button>
       `;
 
-      CATEGORIES.forEach(cat => {
+      topCatIds.forEach(id => {
+        const cat = CATEGORIES.find(c => c.id === id);
+        if (!cat) return;
         const count = products.filter(p => p.cat === cat.id).length;
         const isSel = state.selectedCategory === cat.id;
+        const shortName = cat.id === 'cervezas' ? 'Cervezas' : (cat.id === 'promos' ? 'Promos' : cat.name);
         html += `
-          <button onclick="selectCategory('${cat.id}')" class="px-3 py-1.5 rounded-xl text-xs font-extrabold shrink-0 transition flex items-center gap-1 ${
+          <button onclick="selectCategory('${cat.id}')" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1 ${
             isSel
               ? 'bg-amber-400 text-zinc-950 shadow-sm'
               : 'bg-[#14161D] text-zinc-300 border border-zinc-800 hover:border-zinc-700'
           }">
             <span>${cat.icon}</span>
-            <span>${cat.name}</span>
+            <span>${shortName}</span>
             <span class="text-[10px] opacity-75">(${count})</span>
           </button>
         `;
       });
 
+      // Botón desplegable para el resto de las 13 categorías
+      const dropdownLabel = (!isTopSelected && currentCatObj)
+        ? `${currentCatObj.icon} ${currentCatObj.name.split(' ')[0]} ▼`
+        : `📂 Más (13) ▼`;
+      const isDropdownActive = !isTopSelected;
+
+      html += `
+        <button onclick="toggleCategoriesDropdown()" id="btnToggleCategories" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1 ${
+          isDropdownActive
+            ? 'bg-amber-400 text-zinc-950 shadow-sm'
+            : 'bg-zinc-800/90 text-amber-300 border border-amber-500/30 hover:border-amber-400'
+        }">
+          <span>${dropdownLabel}</span>
+        </button>
+      `;
+
       container.innerHTML = html;
+
+      // Renderizar grilla de 16 categorías completas en el dropdown
+      if (dropdownGrid) {
+        dropdownGrid.innerHTML = CATEGORIES.map(cat => {
+          const count = products.filter(p => p.cat === cat.id).length;
+          const isSel = state.selectedCategory === cat.id;
+          return `
+            <button onclick="selectCategory('${cat.id}'); toggleCategoriesDropdown(false);" class="p-2 rounded-xl text-left text-xs font-bold transition flex items-center justify-between border ${
+              isSel
+                ? 'bg-amber-400 text-zinc-950 border-amber-300 shadow-sm'
+                : 'bg-[#0D0E12] text-zinc-200 border-zinc-800 hover:border-zinc-700'
+            }">
+              <span class="truncate pr-1">${cat.icon} ${cat.name}</span>
+              <span class="text-[10px] font-black opacity-75 shrink-0">(${count})</span>
+            </button>
+          `;
+        }).join('');
+      }
 
       // Mostrar subfiltros de promos solo cuando aplica
       const subBar = document.getElementById('promoSubfiltersContainer');
@@ -1141,6 +1195,16 @@
       } else {
         subBar.classList.add('hidden');
         subBar.classList.remove('flex');
+      }
+    }
+
+    function toggleCategoriesDropdown(forceState) {
+      const el = document.getElementById('allCategoriesDropdown');
+      if (!el) return;
+      if (typeof forceState === 'boolean') {
+        el.classList.toggle('hidden', !forceState);
+      } else {
+        el.classList.toggle('hidden');
       }
     }
 
@@ -1154,9 +1218,9 @@
       state.promoSubfilter = sub;
       document.querySelectorAll('.promo-sub-chip').forEach(btn => {
         if (btn.getAttribute('data-sub') === sub) {
-          btn.className = 'promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-400 text-zinc-950 shrink-0';
+          btn.className = 'promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-400 text-zinc-950';
         } else {
-          btn.className = 'promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800 shrink-0';
+          btn.className = 'promo-sub-chip px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#14161D] text-zinc-300 border border-zinc-800';
         }
       });
       renderCatalog();
