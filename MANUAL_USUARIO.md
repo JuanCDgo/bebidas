@@ -93,3 +93,25 @@ Tocá el botón **`🛵 Motos`** en la cabecera para abrir el panel de despacho:
 - **Sellos de Fidelidad (`⭐`):** Cada compra que supera los **$15.000** suma 1 sello (incluso de forma automática si el socio está reconocido en el pedido). Podés enviarle a cada cliente su **Pase Digital por WhatsApp** con 1 toque.
 - **Cobro QR Mostrador (`📷 QR`):** Muestra en pantalla completa tu código QR de Mercado Pago y tu Alias para cobrar en el local al instante.
 - **Cartel QR Imprimible (`🪧`):** Genera el afiche con el logo de *Maldito Flanders* y el código QR del catálogo para pegar en el mostrador o subir a Instagram.
+
+---
+
+## 🔐 7. Vista Cliente vs. Vista Dueño (separadas)
+
+**Link para tus clientes (el que compartís):** `https://juancdgo.github.io/bebidas/`
+El cliente ve solo la tienda: catálogo, carrito, datos de envío y pago. No existe ningún botón, candado ni pantalla de administración.
+
+**Tu link de dueño (guardalo en favoritos / pantalla de inicio de TU celular):** `https://juancdgo.github.io/bebidas/?admin=1`
+- La primera vez te pide **crear tu PIN** (4 a 8 números). Se guarda solo en ese teléfono y no se muestra en ninguna pantalla.
+- Después te recuerda por 30 días. Con 5 PIN incorrectos se bloquea 5 minutos.
+- Si abrís el link común (sin `?admin=1`) en tu celular, ves la tienda como la ve el cliente (sirve para probar).
+- Si querés cambiar el PIN o te olvidaste: en ese celular borrá los datos del sitio, o pedí que te ayudemos a resetearlo.
+
+**Barra del dueño (activá `Modo Dueño: ON`):**
+- **Estado del local en 1 toque:** `🟢 Delivery y Retiro` · `🟡 Solo Retiro` · `🔴 Cerrado`.
+  - *Solo Retiro:* el cliente no puede elegir moto y ve el aviso "Por el momento no tenemos motos disponibles. Podés retirar tu pedido por el local".
+  - *Cerrado:* el cliente puede armar el pedido, pero no enviarlo hasta que abras.
+- **📲 Copiar link para clientes:** copia el link limpio para pegarlo en WhatsApp o Instagram.
+- **🔒 Salir de Dueño:** cierra tu sesión en ese celular.
+
+> **Nota:** el cliente ve su tarjeta de sellos únicamente con el link personal que le mandás por WhatsApp desde el Club de Fidelidad.

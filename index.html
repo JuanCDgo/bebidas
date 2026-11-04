@@ -110,7 +110,7 @@
           <span class="text-zinc-600">·</span>
           <span id="argClock" class="text-zinc-400 font-semibold text-[10px]">🇦🇷 --:-- hs</span>
         </div>
-        <button 
+        <button data-owner-only 
           onclick="toggleOwnerMode()" 
           id="btnOwnerToggle"
           class="px-2.5 py-0.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-extrabold text-[10px] border border-zinc-700 transition flex items-center gap-1"
@@ -139,7 +139,7 @@
         <!-- Botonera Superior -->
         <div class="flex items-center gap-1.5 shrink-0">
           <!-- Cobro QR Mostrador -->
-          <button 
+          <button data-owner-only 
             onclick="openQrCobroModal()" 
             class="px-2.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-amber-400 font-black text-[11px] flex items-center gap-1 border border-amber-500/30 shadow-sm active:scale-95 transition"
             title="QR de Cobro Mercado Pago / Alias"
@@ -148,7 +148,7 @@
           </button>
 
           <!-- Panel de Cadetes (Moto 1 y Moto 2) -->
-          <button 
+          <button data-owner-only 
             onclick="openMotoboysModal()" 
             class="px-2.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-emerald-400 font-black text-[11px] flex items-center gap-1 border border-emerald-500/30 shadow-sm active:scale-95 transition relative"
             title="Control de Repartidores (Moto 1 y Moto 2)"
@@ -158,7 +158,7 @@
           </button>
 
           <!-- Tarjeta de Fidelidad -->
-          <button 
+          <button data-owner-only 
             onclick="openLoyaltyModal()" 
             class="w-8 h-8 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-rose-400 font-black text-xs flex items-center justify-center border border-rose-500/30 shadow-sm active:scale-95 transition"
             title="Club de Fidelidad (Sellos)"
@@ -167,7 +167,7 @@
           </button>
 
           <!-- Afiche QR Vidriera -->
-          <button 
+          <button data-owner-only 
             onclick="openFlyerQrModal()" 
             class="w-8 h-8 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-black text-xs flex items-center justify-center border border-zinc-700 shadow-sm active:scale-95 transition"
             title="Cartel QR para Mostrador o Redes"
@@ -176,7 +176,7 @@
           </button>
 
           <!-- Ajustes -->
-          <button 
+          <button data-owner-only 
             onclick="openSettingsModal()" 
             class="w-8 h-8 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center justify-center border border-zinc-700 shadow-sm active:scale-95 transition"
             title="Ajustes del Negocio"
@@ -212,6 +212,20 @@
             + Nuevo Producto
           </button>
         </div>
+        <!-- Estado del local en 1 toque -->
+        <div id="storeStatusSelector" class="grid grid-cols-3 gap-1.5">
+          <button type="button" data-status="open" onclick="setStoreStatus('open')">🟢 Delivery y Retiro</button>
+          <button type="button" data-status="pickup" onclick="setStoreStatus('pickup')">🟡 Solo Retiro</button>
+          <button type="button" data-status="closed" onclick="setStoreStatus('closed')">🔴 Cerrado</button>
+        </div>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button onclick="copyCustomerLink()" class="py-1.5 px-2 bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
+            <span>📲 Copiar link para clientes</span>
+          </button>
+          <button onclick="ownerLogout()" class="py-1.5 px-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
+            <span>🔒 Salir de Dueño</span>
+          </button>
+        </div>
         <div class="grid grid-cols-3 gap-1.5">
           <button onclick="copyFullWhatsAppPriceList()" class="py-1.5 px-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
             <span>📋 Copiar Lista WA</span>
@@ -219,7 +233,7 @@
           <button onclick="openBulkPriceModal()" class="py-1.5 px-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
             <span>⚡ Aumentar %</span>
           </button>
-          <button onclick="openMotoboysModal()" class="py-1.5 px-2 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
+          <button data-owner-only onclick="openMotoboysModal()" class="py-1.5 px-2 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
             <span>🛵 Caja Motos</span>
           </button>
         </div>
@@ -447,7 +461,7 @@
 
         <div class="flex items-center justify-between gap-2 pt-1">
           <button onclick="clearCart()" class="text-[11px] text-zinc-500 hover:text-rose-400 font-bold">🗑️ Vaciar carrito</button>
-          <button onclick="dispatchCurrentCartToMotoboy()" class="text-[11px] text-amber-400 hover:underline font-bold">🛵 Asignar directo a Moto 1 / Moto 2</button>
+          <button data-owner-only onclick="dispatchCurrentCartToMotoboy()" class="text-[11px] text-amber-400 hover:underline font-bold">🛵 Asignar directo a Moto 1 / Moto 2</button>
         </div>
       </div>
     </div>
@@ -797,8 +811,9 @@
           <div>
             <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Estado del Local</label>
             <select id="setIsOpen" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-bold text-white">
-              <option value="true">🟢 Abierto para Pedidos</option>
-              <option value="false">🔴 Cerrado por hoy</option>
+              <option value="open">🟢 Abierto · Delivery & Retiro</option>
+              <option value="pickup">🟡 Abierto · Solo Retiro en Local</option>
+              <option value="closed">🔴 Cerrado por hoy</option>
             </select>
           </div>
         </div>
@@ -884,6 +899,21 @@
       isOpen: true,
       businessLogo: ''
     };
+
+    // =========================================================
+    // SEPARACIÓN COMPRADOR / DUEÑO
+    // IS_OWNER_VIEW solo pasa a true si se abre con ?admin=1 y se valida el PIN.
+    // Para el comprador, los botones y modales del dueño se ELIMINAN del DOM.
+    // =========================================================
+    let IS_OWNER_VIEW = false;
+    const OWNER_KEYS = {
+      PIN: 'flanders_owner_pin_v1',         // hash SHA-256 del PIN (nunca el PIN en claro)
+      SESSION: 'flanders_owner_session_v1', // timestamp de vencimiento de la sesión
+      LOCK: 'flanders_owner_lock_v1'        // intentos fallidos / bloqueo temporal
+    };
+    const OWNER_SESSION_DAYS = 30;
+    const OWNER_MAX_ATTEMPTS = 5;
+    const OWNER_LOCK_MINUTES = 5;
 
     let products = [];
     let cart = {}; // { productId: qty }
@@ -1058,17 +1088,7 @@
       document.getElementById('ruleDeliveryFeeText').textContent = formatARS(settings.deliveryFee || 1500);
       document.getElementById('ruleStampMinText').textContent = 'Desde ' + formatARS(settings.stampMinAmount || 15000);
 
-      const statusDot = document.getElementById('statusDot');
-      const statusText = document.getElementById('headerStatusText');
-      if (settings.isOpen) {
-        statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
-        statusText.textContent = 'Abierto · Delivery & Retiro';
-        statusText.className = 'text-emerald-400 font-extrabold uppercase tracking-wider text-[10px]';
-      } else {
-        statusDot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
-        statusText.textContent = 'Cerrado en este momento';
-        statusText.className = 'text-rose-400 font-extrabold uppercase tracking-wider text-[10px]';
-      }
+      renderStoreStatusHeader();
 
       const logoContainers = [
         document.getElementById('headerLogoContainer'),
@@ -1088,6 +1108,204 @@
       const dotMotos = document.getElementById('activeMotosBadge');
       if (dotMotos) {
         dotMotos.classList.toggle('hidden', motoboyDeliveries.length === 0);
+      }
+    }
+
+    // =========================================================
+    // ESTADO DEL LOCAL: open | pickup | closed
+    // =========================================================
+    function getStoreStatus() {
+      const s = settings.storeStatus;
+      if (s === 'open' || s === 'pickup' || s === 'closed') return s;
+      return settings.isOpen === false ? 'closed' : 'open'; // compatibilidad con datos viejos
+    }
+
+    function renderStoreStatusHeader() {
+      const dot = document.getElementById('statusDot');
+      const txt = document.getElementById('headerStatusText');
+      if (!dot || !txt) return;
+      const map = {
+        open:   { dot: 'bg-emerald-500 animate-pulse', text: 'Abierto · Delivery & Retiro',     color: 'text-emerald-400' },
+        pickup: { dot: 'bg-amber-400 animate-pulse',   text: 'Abierto · Solo Retiro en Local',  color: 'text-amber-400' },
+        closed: { dot: 'bg-rose-500',                  text: 'Cerrado en este momento',         color: 'text-rose-400' }
+      };
+      const cfg = map[getStoreStatus()];
+      dot.className = 'w-2.5 h-2.5 rounded-full ' + cfg.dot;
+      txt.textContent = cfg.text;
+      txt.className = cfg.color + ' font-extrabold uppercase tracking-wider text-[10px]';
+      renderStoreStatusSelector();
+    }
+
+    function renderStoreStatusSelector() {
+      const wrap = document.getElementById('storeStatusSelector');
+      if (!wrap) return;
+      const current = getStoreStatus();
+      const on = {
+        open: 'bg-emerald-500 text-zinc-950 border-emerald-400',
+        pickup: 'bg-amber-400 text-zinc-950 border-amber-300',
+        closed: 'bg-rose-500 text-white border-rose-400'
+      };
+      wrap.querySelectorAll('button[data-status]').forEach(b => {
+        const s = b.dataset.status;
+        b.className = 'py-1.5 px-1 rounded-xl border text-[10px] font-black leading-tight transition ' +
+          (s === current ? on[s] : 'bg-[#0D0E12] text-zinc-400 border-zinc-800');
+      });
+    }
+
+    function setStoreStatus(status) {
+      if (!['open', 'pickup', 'closed'].includes(status)) return;
+      settings.storeStatus = status;
+      settings.isOpen = status !== 'closed';
+      saveSettingsToStorage();
+      renderStoreStatusHeader();
+      const msgs = { open: 'Local abierto: Delivery & Retiro', pickup: 'Solo Retiro en Local (sin delivery)', closed: 'Local cerrado' };
+      showToast(msgs[status], status === 'open' ? '🟢' : (status === 'pickup' ? '🟡' : '🔴'));
+      pushCatalogChangesToCloud();
+    }
+
+    // Si el local está en "Solo Retiro", el comprador no puede elegir envío en moto
+    function enforceStoreStatusInCart() {
+      const btnDel = document.getElementById('btnModeDelivery');
+      if (!btnDel) return;
+      let note = document.getElementById('storeStatusCartNote');
+      if (!note) {
+        note = document.createElement('p');
+        note.id = 'storeStatusCartNote';
+        note.className = 'hidden mt-1.5 text-[11px] font-bold text-amber-300 leading-snug';
+        btnDel.parentElement.insertAdjacentElement('afterend', note);
+      }
+      if (!IS_OWNER_VIEW && getStoreStatus() === 'pickup') {
+        if (state.deliveryMode === 'delivery') setDeliveryMode('takeaway');
+        btnDel.disabled = true;
+        btnDel.classList.add('opacity-40', 'cursor-not-allowed');
+        note.textContent = '🟡 Por el momento no tenemos motos disponibles. Podés retirar tu pedido por el local.';
+        note.classList.remove('hidden');
+      } else {
+        btnDel.disabled = false;
+        btnDel.classList.remove('opacity-40', 'cursor-not-allowed');
+        note.classList.add('hidden');
+      }
+    }
+
+    // =========================================================
+    // ACCESO DUEÑO (?admin=1 + PIN). El PIN se define en cada teléfono,
+    // se guarda hasheado y NO aparece escrito en ninguna pantalla.
+    // =========================================================
+    async function hashOwnerPin(pin) {
+      const data = 'flanders-owner|' + pin;
+      if (window.crypto && window.crypto.subtle) {
+        const buf = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(data));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+      let h = 2166136261; // fallback FNV-1a si el navegador no ofrece crypto.subtle
+      for (let i = 0; i < data.length; i++) { h ^= data.charCodeAt(i); h = Math.imul(h, 16777619); }
+      return 'fnv' + (h >>> 0).toString(16);
+    }
+
+    function ownerSessionValid() {
+      return Number(localStorage.getItem(OWNER_KEYS.SESSION)) > Date.now();
+    }
+
+    function startOwnerSession() {
+      localStorage.setItem(OWNER_KEYS.SESSION, String(Date.now() + OWNER_SESSION_DAYS * 86400000));
+      localStorage.removeItem(OWNER_KEYS.LOCK);
+    }
+
+    function ownerLogout() {
+      localStorage.removeItem(OWNER_KEYS.SESSION);
+      window.location.href = window.location.href.split(/[?#]/)[0];
+    }
+
+    function requestOwnerAccess() {
+      return new Promise(resolve => {
+        const hasPin = !!localStorage.getItem(OWNER_KEYS.PIN);
+        const overlay = document.createElement('div');
+        overlay.id = 'ownerGateOverlay';
+        overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95';
+        overlay.innerHTML = `
+          <div class="w-full max-w-xs bg-[#14161D] border border-zinc-800 rounded-3xl p-5 space-y-3 text-white shadow-2xl">
+            <div class="text-center">
+              <div class="text-3xl">🔐</div>
+              <h2 class="text-base font-black mt-1">${hasPin ? 'Acceso Dueño' : 'Crear PIN de Dueño'}</h2>
+              <p class="text-[11px] text-zinc-400 mt-1">${hasPin ? 'Ingresá tu PIN para continuar.' : 'Elegí un PIN de 4 a 8 números. Se guarda solo en este teléfono.'}</p>
+            </div>
+            <input id="ownerPinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="PIN" class="w-full px-3 py-2.5 rounded-xl bg-[#0D0E12] border border-zinc-700 text-center text-lg font-black tracking-widest text-white focus:outline-none focus:border-amber-400">
+            ${hasPin ? '' : '<input id="ownerPinInput2" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="Repetí el PIN" class="w-full px-3 py-2.5 rounded-xl bg-[#0D0E12] border border-zinc-700 text-center text-lg font-black tracking-widest text-white focus:outline-none focus:border-amber-400">'}
+            <p id="ownerPinMsg" class="text-[11px] font-bold text-rose-400 text-center min-h-[14px]"></p>
+            <button id="ownerPinOk" class="w-full py-2.5 bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black rounded-xl text-sm">${hasPin ? 'Entrar' : 'Guardar PIN y entrar'}</button>
+            <button id="ownerPinCancel" class="w-full py-2 text-zinc-400 hover:text-white font-bold text-xs">Volver a la tienda</button>
+          </div>`;
+        document.body.appendChild(overlay);
+
+        const input = overlay.querySelector('#ownerPinInput');
+        const input2 = overlay.querySelector('#ownerPinInput2');
+        const msg = overlay.querySelector('#ownerPinMsg');
+        const finish = ok => { overlay.remove(); resolve(ok); };
+        input.focus();
+
+        const submit = async () => {
+          const pin = input.value.trim();
+          let lock = {};
+          try { lock = JSON.parse(localStorage.getItem(OWNER_KEYS.LOCK) || '{}'); } catch (e) {}
+          if (lock.until && lock.until > Date.now()) {
+            msg.textContent = 'Demasiados intentos. Probá en ' + Math.ceil((lock.until - Date.now()) / 60000) + ' min.';
+            return;
+          }
+          if (!/^\d{4,8}$/.test(pin)) { msg.textContent = 'El PIN debe tener entre 4 y 8 números.'; return; }
+
+          if (!hasPin) {
+            if (input2.value.trim() !== pin) { msg.textContent = 'Los dos PIN no coinciden.'; return; }
+            localStorage.setItem(OWNER_KEYS.PIN, await hashOwnerPin(pin));
+            startOwnerSession();
+            finish(true);
+            return;
+          }
+
+          if (await hashOwnerPin(pin) === localStorage.getItem(OWNER_KEYS.PIN)) {
+            startOwnerSession();
+            finish(true);
+          } else {
+            const n = (lock.n || 0) + 1;
+            if (n >= OWNER_MAX_ATTEMPTS) {
+              localStorage.setItem(OWNER_KEYS.LOCK, JSON.stringify({ n: 0, until: Date.now() + OWNER_LOCK_MINUTES * 60000 }));
+              msg.textContent = 'Bloqueado por ' + OWNER_LOCK_MINUTES + ' minutos.';
+            } else {
+              localStorage.setItem(OWNER_KEYS.LOCK, JSON.stringify({ n, until: 0 }));
+              msg.textContent = 'PIN incorrecto (' + n + '/' + OWNER_MAX_ATTEMPTS + ').';
+            }
+            input.value = '';
+          }
+        };
+
+        overlay.querySelector('#ownerPinOk').addEventListener('click', submit);
+        overlay.querySelector('#ownerPinCancel').addEventListener('click', () => finish(false));
+        overlay.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+      });
+    }
+
+    function enterPublicView(hadAdminParam) {
+      loyaltyMembers = []; // el comprador nunca ve ni usa la lista de socios
+      state.ownerMode = false;
+      document.querySelectorAll('[data-owner-only]').forEach(el => el.remove());
+      ['ownerToolbar', 'motoboysModal', 'qrCobroModal', 'flyerQrModal', 'loyaltyModal',
+       'editMemberModal', 'productModal', 'bulkPriceModal', 'settingsModal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      });
+      if (hadAdminParam) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
+    function copyCustomerLink() {
+      const url = window.location.href.split(/[?#]/)[0];
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(
+          () => showToast('Link para clientes copiado', '📲'),
+          () => prompt('Copiá este link para tus clientes:', url)
+        );
+      } else {
+        prompt('Copiá este link para tus clientes:', url);
       }
     }
 
@@ -1475,6 +1693,7 @@
       }
       document.getElementById('cartDisplayAlias').textContent = settings.paymentAlias || 'malditoflanders.mp';
       renderCartModalContent();
+      enforceStoreStatusInCart();
       document.getElementById('cartModal').classList.remove('hidden');
     }
 
@@ -1599,6 +1818,7 @@
       document.getElementById('deliveryAddressFields').classList.toggle('hidden', !isDel);
       document.getElementById('cartDeliveryRow').classList.toggle('hidden', !isDel);
       updateCartTotalsUI();
+      enforceStoreStatusInCart();
     }
 
     function setPaymentMethod(method) {
@@ -1688,6 +1908,14 @@
         btnConfirm.className = 'w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-black rounded-2xl text-sm shadow-lg flex items-center justify-center gap-2 transition active:scale-95';
       }
 
+      // Local cerrado: el comprador puede armar el pedido pero no enviarlo
+      if (!IS_OWNER_VIEW && getStoreStatus() === 'closed') {
+        warnBox.classList.remove('hidden');
+        warnBox.innerHTML = '🔴 Estamos cerrados en este momento. Podés armar tu pedido, pero se puede enviar recién cuando abramos.';
+        btnConfirm.disabled = true;
+        btnConfirm.className = 'w-full py-3.5 bg-zinc-700 text-zinc-400 font-black rounded-2xl text-sm cursor-not-allowed flex items-center justify-center gap-2';
+      }
+
       // Cálculo de vuelto en efectivo
       const payWithVal = Number(document.getElementById('cashPayWithInput').value) || 0;
       const changeEl = document.getElementById('cashChangeResultText');
@@ -1704,6 +1932,15 @@
     }
 
     function sendOrderToWhatsApp() {
+      if (!IS_OWNER_VIEW && getStoreStatus() === 'closed') {
+        alert('Estamos cerrados en este momento. Probá de nuevo cuando abramos.');
+        return;
+      }
+      if (!IS_OWNER_VIEW && getStoreStatus() === 'pickup' && state.deliveryMode === 'delivery') {
+        enforceStoreStatusInCart();
+        alert('Por el momento solo atendemos con retiro en el local.');
+        return;
+      }
       const { sum } = getCartSubtotal();
       const isDel = state.deliveryMode === 'delivery';
       const minOrder = Number(settings.minOrderAmount) || 7000;
@@ -2379,7 +2616,7 @@
       document.getElementById('setMinOrder').value = settings.minOrderAmount || 7000;
       document.getElementById('setDeliveryFee').value = settings.deliveryFee || 1500;
       document.getElementById('setStampMinAmount').value = settings.stampMinAmount || 15000;
-      document.getElementById('setIsOpen').value = String(settings.isOpen !== false);
+      document.getElementById('setIsOpen').value = getStoreStatus();
       document.getElementById('setMoto1Name').value = settings.moto1Name || 'Moto 1 (Repartidor 1)';
       document.getElementById('setMoto2Name').value = settings.moto2Name || 'Moto 2 (Repartidor 2)';
       document.getElementById('setTargetStamps').value = settings.targetStamps || 6;
@@ -2399,7 +2636,8 @@
       settings.minOrderAmount = Number(document.getElementById('setMinOrder').value) || 7000;
       settings.deliveryFee = Number(document.getElementById('setDeliveryFee').value) || 1500;
       settings.stampMinAmount = Number(document.getElementById('setStampMinAmount').value) || 15000;
-      settings.isOpen = document.getElementById('setIsOpen').value === 'true';
+      settings.storeStatus = document.getElementById('setIsOpen').value;
+      settings.isOpen = settings.storeStatus !== 'closed';
       settings.moto1Name = document.getElementById('setMoto1Name').value.trim() || 'Moto 1';
       settings.moto2Name = document.getElementById('setMoto2Name').value.trim() || 'Moto 2';
       settings.targetStamps = Number(document.getElementById('setTargetStamps').value) || 6;
@@ -2548,7 +2786,7 @@
         settings.minOrderAmount || 7000,
         settings.deliveryFee || 1500,
         settings.stampMinAmount || 15000,
-        settings.isOpen !== false ? '1' : '0',
+        ({ open: '1', pickup: '2', closed: '0' })[getStoreStatus()],
         (settings.paymentAlias || 'malditoflanders.mp').replace(/~/g, ''),
         (settings.whatsappPhone || '').replace(/[^0-9]/g, '')
       ].join('~');
@@ -2592,7 +2830,9 @@
           if (Number(parts[0]) > 0) settings.minOrderAmount = Number(parts[0]);
           if (Number(parts[1]) >= 0) settings.deliveryFee = Number(parts[1]);
           if (Number(parts[2]) > 0) settings.stampMinAmount = Number(parts[2]);
-          settings.isOpen = parts[3] === '1';
+          if (parts[3] === '2') { settings.storeStatus = 'pickup'; settings.isOpen = true; }
+          else if (parts[3] === '1') { settings.storeStatus = 'open'; settings.isOpen = true; }
+          else { settings.storeStatus = 'closed'; settings.isOpen = false; }
           if (parts[4]) settings.paymentAlias = parts[4];
           if (parts[5]) settings.whatsappPhone = parts[5];
           saveSettingsToStorage();
@@ -2634,10 +2874,42 @@
     }
 
     // =========================================================
+    // GUARDIAS: ninguna función del dueño responde en la vista comprador
+    // =========================================================
+    [
+      'toggleOwnerMode', 'openSettingsModal', 'saveSettings', 'handleLogoUpload', 'removeBusinessLogo',
+      'exportBackupJSON', 'importBackupJSON', 'resetCatalogToOriginal',
+      'openMotoboysModal', 'dispatchCurrentCartToMotoboy', 'addMotoboyDelivery', 'removeMotoboyDelivery',
+      'settleMotoboy', 'clearAllMotoboyDeliveries',
+      'openQrCobroModal', 'openFlyerQrModal', 'openLoyaltyModal', 'addLoyaltyMember', 'changeMemberStamps',
+      'shareMemberPassWA', 'openEditMemberModal', 'saveEditedMember', 'deleteLoyaltyMember',
+      'openNewProductModal', 'openEditProductModal', 'saveProductFromModal', 'deleteProduct',
+      'openBulkPriceModal', 'applyBulkIncrease', 'copyFullWhatsAppPriceList',
+      'toggleProductStock', 'promptQuickPriceEdit', 'pushCatalogChangesToCloud',
+      'recordSalesFromCurrentCart', 'setStoreStatus'
+    ].forEach(name => {
+      const original = window[name];
+      if (typeof original !== 'function') return;
+      window[name] = function (...args) {
+        if (!IS_OWNER_VIEW) return;
+        return original.apply(this, args);
+      };
+    });
+
+    // =========================================================
     // INICIALIZACIÓN
     // =========================================================
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       loadAllData();
+
+      const params = new URLSearchParams(window.location.search);
+      const wantsAdmin = params.has('admin');
+      if (wantsAdmin && !params.has('pass')) {
+        IS_OWNER_VIEW = ownerSessionValid() || await requestOwnerAccess();
+        if (IS_OWNER_VIEW) startOwnerSession(); // renueva los 30 días
+      }
+      if (!IS_OWNER_VIEW) enterPublicView(wantsAdmin);
+
       applyBrandingUI();
       renderCategoryChips();
       renderCatalog();

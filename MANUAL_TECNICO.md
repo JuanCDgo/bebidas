@@ -61,3 +61,21 @@ Documentación de arquitectura, modelo de datos, sincronización en la nube y l�
 - **Repositorio GitHub:** `https://github.com/JuanCDgo/bebidas`
 - **GitHub Pages URL:** `https://juancdgo.github.io/bebidas/`
 - **Google Drive Backup:** Carpeta `Mini Apps / bebidas`
+
+---
+
+## 🔐 Separación Comprador / Dueño (arquitectura)
+
+**Flujo de arranque (`DOMContentLoaded`):** `loadAllData()` → si hay `?admin` (y no `?pass`) → `IS_OWNER_VIEW = ownerSessionValid() || await requestOwnerAccess()` → si `!IS_OWNER_VIEW` → `enterPublicView()` → render normal.
+
+**Vista comprador (`enterPublicView`):** elimina del DOM todo `[data-owner-only]`, `#ownerToolbar` y los modales `motoboys, qrCobro, flyerQr, loyalty, editMember, product, bulkPrice, settings`; vacía `loyaltyMembers`; limpia `?admin` de la URL.
+**Guardias:** un array de ~35 nombres de funciones de dueño se envuelve en `window[name]` para que no hagan nada si `!IS_OWNER_VIEW` (incluye `pushCatalogChangesToCloud` y `recordSalesFromCurrentCart`).
+Para agregar una función de dueño nueva: sumarla a esa lista y marcar su botón con `data-owner-only`.
+
+**Acceso dueño:** modal creado dinámicamente (no existe en el HTML público). PIN → `SHA-256('flanders-owner|' + pin)` en `localStorage` `flanders_owner_pin_v1` (fallback FNV-1a si no hay `crypto.subtle`). Sesión: `flanders_owner_session_v1` (timestamp de vencimiento, 30 días, se renueva). Bloqueo: `flanders_owner_lock_v1` `{n, until}` (5 intentos → 5 min).
+
+**Estado del local:** `settings.storeStatus ∈ {open, pickup, closed}` (`getStoreStatus()` deriva de `isOpen` si no existe). Nube: campo 4 de `flanders_cfg_v1` → `'1'`/`'2'`/`'0'`. Carrito: `enforceStoreStatusInCart()` (pickup) y bloqueo del botón de envío en `updateCartTotalsUI()`/`sendOrderToWhatsApp()` (closed). El dueño queda exento.
+
+**Límite de seguridad (importante):** esto protege la *interfaz*. Al ser un sitio estático, un cliente técnico puede leer el código. Lo que cualquiera podría escribir es la sincronización en la nube (`keyvalue.immanuel.co`, sin autenticación). Ver `HANDOFF_AGENTE.md` §3 para la solución propuesta (firma ECDSA de los datos).
+
+**Tests:** `scratch/test_vistas.js`, `test_flujos.js`, `test_pin.js` (Chrome headless).
