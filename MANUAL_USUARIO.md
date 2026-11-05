@@ -53,20 +53,37 @@ En la barra superior, tocá **`👨‍🍳 Modo Dueño: OFF`** para pasarlo a **
 
 ---
 
-## 🛵 4. Control de los 2 Repartidores (`Moto 1` y `Moto 2`) y Rendición de Caja
+## 🛵 4. Control de los 2 Repartidores (`Moto 1` y `Moto 2`), Ticket GPS y Rendición de Caja
 
 Tocá el botón **`🛵 Motos`** en la cabecera para abrir el panel de despacho:
 
-1. **Asignar un Viaje:**
+1. **Cambio Inicial de cada Cadete:**
+   - En la tarjeta de **`🛵 Moto 1`** y **`🛵 Moto 2`** podés anotar el **Cambio inicial ($)** con el que sale cada repartidor al arrancar el turno (ej. `$5.000`).
+2. **Asignar un Viaje:**
    - Elegí **`🛵 Moto 1`** o **`🛵 Moto 2`**.
-   - Ingresá la dirección o nombre del cliente, el monto total a cobrar y si paga en **💵 Efectivo (rinde caja)** o si **💳 Ya pagó por Transferencia**.
-   - Tocá **`+ Asignar Viaje`** (también podés importar directamente un carrito armado tocando *"🛵 Asignar directo a Moto 1 / Moto 2"* desde el carrito).
-2. **Rendición de Efectivo al Final de la Noche:**
+   - Ingresá la dirección exacta (sirve para abrir el GPS), el monto total a cobrar, con cuánto abona (opcional, para calcular el vuelto), el resumen del pedido y si paga en **💵 Efectivo (rinde caja)** o si **💳 Ya pagó por Transferencia**.
+   - Tocá **`+ Asignar Viaje`** (también podés importar directamente un carrito armado tocando *"🛵 Asignar directo a Moto 1 / Moto 2"* desde el carrito, que trae dirección, monto, vuelto y detalle de bebidas automáticamente).
+3. **Ticket al Cadete por WhatsApp (`📲 WA`) y Mapa GPS (`📍 Maps`):**
+   - En cada viaje activo tenés dos botones rápidos:
+     - **`📍 Maps`**: Abre la dirección del cliente directamente en Google Maps.
+     - **`📲 WA`**: Envía por WhatsApp al cadete la ficha del viaje lista con hora, dirección, **link directo a Google Maps**, detalle de productos, si debe cobrar o solo entregar, y el **vuelto exacto que debe llevar**.
+4. **Rendición de Efectivo al Final de la Noche:**
    - El panel te muestra por separado para **Moto 1** y **Moto 2**:
      - Cantidad de viajes realizados en el turno.
-     - **Efectivo exacto en mano que debe entregarte cada cadete**.
+     - **Cobrado en viajes** + **Cambio inicial** = **Total exacto a rendir en mano**.
      - **Total acumulado de envíos ($1.500 c/u)** de cada moto para liquidarle sus viajes sin usar calculadora ni papel.
-   - Cuando el repartidor te entrega la plata, tocás **`✅ Rendir Caja Moto`** y su cuenta vuelve a cero.
+   - Cuando el repartidor te entrega la plata, tocás **`✅ Rendir Caja Moto`** y su cuenta y cambio inicial vuelven a cero.
+
+---
+
+## 📊 4B. Cierre de Caja y Arqueo Nocturno (`📊 Cierre Caja`)
+
+En la barra de **`Modo Dueño: ON`**, tocá **`📊 Cierre Caja`**:
+- Visualizás al instante las **Ventas del Catálogo**, **Cantidad de Pedidos** y **Unidades Vendidas** del turno.
+- Ves el **Arqueo de Motos Activas** (efectivo cobrado en viajes, transferencias, total a rendir por Moto 1 y Moto 2 incluyendo cambio inicial, y total de envíos de cadetes).
+- Ves el **🔥 Top 5 Más Vendidos** con unidades y facturación.
+- Tocando **`📲 Enviar Resumen de Cierre a mi WhatsApp`** recibís el reporte completo en tu celular para guardar registro de cada noche.
+- Tocando **`🧹 Cerrar Turno y Poner Motos en Cero`** limpiás los viajes activos y cambios iniciales para el día siguiente (conservando el ranking histórico de productos).
 
 ---
 
@@ -113,5 +130,21 @@ El cliente ve solo la tienda: catálogo, carrito, datos de envío y pago. No exi
   - *Cerrado:* el cliente puede armar el pedido, pero no enviarlo hasta que abras.
 - **📲 Copiar link para clientes:** copia el link limpio para pegarlo en WhatsApp o Instagram.
 - **🔒 Salir de Dueño:** cierra tu sesión en ese celular.
+
+### 🔑 Firma Criptográfica de la Nube (Seguridad Anti-Sabotaje)
+Para que nadie pueda alterar tus precios, tu alias o tu número de WhatsApp en la nube:
+1. Abrí tu link de dueño (`?admin=1`), entrá a **`⚙️ Configuración`** y buscá el campo **`🔑 Clave de Firma Cloud (Dueño)`**.
+2. Pegá por única vez tu clave privada `FLK1-...` (guardada en tu PC en `_secretos/flanders_clave_firma.txt`) y tocá **Guardar Configuración**.
+3. El indicador pasará a **`🟢 Firma activa`**. A partir de ese momento, cada cambio que hagas sale firmado digitalmente y los celulares de los clientes rechazan cualquier cambio que no tenga tu firma.
+   - Si exportás una copia de respaldo JSON (`⬇️ Exportar Copia JSON`), tu clave de firma viaja incluida para restaurarla en otro teléfono con 1 toque.
+
+---
+
+## 📲 8. Instalar como Aplicación (PWA) en tu Celular o PC
+
+Podés instalar **Maldito Flanders** en la pantalla de inicio sin pasar por tiendas de aplicaciones:
+- **En Android (Chrome):** Abrí el link, tocá el menú **`⋮`** (tres puntos arriba a la derecha) y elegí **"Instalar aplicación"** o **"Agregar a la pantalla principal"**.
+- **En iPhone (Safari):** Abrí el link, tocá el botón **Compartir** (`⬆️`) abajo al centro y elegí **"Agregar a inicio"**.
+- La app abre a pantalla completa con su ícono propio y estética oscura nativa.
 
 > **Nota:** el cliente ve su tarjeta de sellos únicamente con el link personal que le mandás por WhatsApp desde el Club de Fidelidad.

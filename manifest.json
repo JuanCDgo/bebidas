@@ -1,0 +1,20 @@
+{
+  "name": "Maldito Flanders · Delivery de Bebidas & Kiosco",
+  "short_name": "Maldito Flanders",
+  "description": "Catálogo y pedidos rápidos de bebidas, promos, hielo y kiosco con envío a domicilio o retiro en local.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0D0E12",
+  "theme_color": "#0D0E12",
+  "lang": "es-AR",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

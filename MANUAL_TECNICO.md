@@ -9,25 +9,31 @@ Documentación de arquitectura, modelo de datos, sincronización en la nube y l�
 - **Tipo de Aplicación:** Single-Page Application (SPA) responsive orientada a mobile-first (Android / iOS / Desktop).
 - **Tecnologías:** HTML5, Vanilla JavaScript (ES6+), Tailwind CSS.
 - **Motor de Códigos QR:** Doble motor redundante (`qrcode.min.js` local + CDN fallback + `QuickChart.io` API fallback) garantizando que nunca exista un contenedor QR vacío.
-- **Sincronización Cloud + LocalStorage:**
+- **Sincronización Cloud + LocalStorage (con Firma Criptográfica ECDSA P-256):**
   - Persistencia local inmediata en `localStorage`.
-  - Sincronización en la nube vía KeyVal API (`keyvalue.immanuel.co`, AppKey `ozyom7gs`) para propagar cambios de stock (`[sin stock]`), precios modificados y parámetros operativos (*compra mínima, costo de envío, estado abierto/cerrado, alias y WhatsApp*) entre el teléfono del dueño y los teléfonos de los clientes.
+  - Sincronización en la nube vía KeyVal API (`keyvalue.immanuel.co`, AppKey `ozyom7gs`) protegida con firma asimétrica **ECDSA P-256 (SHA-256)** en `flanders_sig_v1` mediante WebCrypto API (`crypto.subtle`).
+  - PWA instalable (`manifest.json` + `icon.svg` + Service Worker `sw.js` con estrategia *network-first*).
 
 ---
 
 ## 🗄️ 2. Esquema de Almacenamiento (`localStorage` & Cloud KV)
 
 ### Llaves Locales (`localStorage`)
-- `flanders_settings_v1`: Objeto de configuración general (`businessName`, `whatsappPhone`, `paymentAlias`, `minOrderAmount`, `deliveryFee`, `stampMinAmount`, `moto1Name`, `moto2Name`, `isOpen`, `businessLogo`, `targetStamps`, `rewardText`).
+- `flanders_settings_v1`: Objeto de configuración general (`businessName`, `whatsappPhone`, `paymentAlias`, `minOrderAmount`, `deliveryFee`, `stampMinAmount`, `moto1Name`, `moto2Name`, `moto1InitialCash`, `moto2InitialCash`, `storeStatus`, `isOpen`, `businessLogo`, `targetStamps`, `rewardText`).
 - `flanders_products_v1`: Array con los **336 productos y promos** estructurados en 16 categorías (`promos`, `hielo`, `cervezas`, `botellas`, `vinos`, `whisky`, `espumantes`, `licores`, `gaseosas`, `hierbas`, `snacks`, `chocolates`, `chicles`, `postres`, `vapers`, `cigarrillos`). Cada producto contiene `salesCount` calculado.
-- `flanders_motoboys_v1`: Registro activo de viajes asignados a **Moto 1** y **Moto 2** para cálculo de efectivo a rendir y comisiones de envío.
+- `flanders_motoboys_v1`: Registro activo de viajes asignados a **Moto 1** y **Moto 2** (`id`, `moto`, `address`, `amount`, `payWith`, `changeNeeded`, `itemsSummary`, `fee`, `payType`, `time`).
 - `flanders_loyalty_v1`: Listado de socios del Club de Fidelidad (`id`, `name`, `phone`, `address`, `stamps`).
 - `flanders_sales_v1`: Historial de ventas registradas (`id`, `orderId`, `productId`, `productName`, `qty`, `unitPrice`, `date`, `time`, `channel`, `clientName`) con relación 1:N hacia `products`.
+- `flanders_owner_pin_v1`: Hash SHA-256 del PIN de dueño.
+- `flanders_owner_session_v1`: Timestamp de expiración de sesión de dueño (30 días).
+- `flanders_owner_lock_v1`: Estado de rate-limiting ante intentos fallidos de PIN.
+- `flanders_owner_sign_key_v1`: Clave privada JWK codificada (`FLK1-...`) para firmar publicaciones en la nube (exclusiva del dispositivo del dueño, incluida en el backup JSON).
 
 ### Llaves en la Nube (Cloud KV)
-- `flanders_cfg_v1`: Cadena compacta `minOrder~deliveryFee~stampMin~isOpen~alias~phone`.
+- `flanders_cfg_v1`: Cadena compacta `minOrder~deliveryFee~stampMin~storeCode~alias~phone`.
 - `flanders_sin_stock_1` y `flanders_sin_stock_2`: IDs de productos pausados (`available: false`).
 - `flanders_prices_1` .. `flanders_prices_4`: Pares `id:precio` de productos cuyo precio fue actualizado por el dueño.
+- `flanders_sig_v1`: Firma ECDSA P-256 (base64url) sobre la cadena canónica `cfg|st1|st2|pr1|pr2|pr3|pr4`.
 
 ---
 
@@ -68,14 +74,18 @@ Documentación de arquitectura, modelo de datos, sincronización en la nube y l�
 
 **Flujo de arranque (`DOMContentLoaded`):** `loadAllData()` → si hay `?admin` (y no `?pass`) → `IS_OWNER_VIEW = ownerSessionValid() || await requestOwnerAccess()` → si `!IS_OWNER_VIEW` → `enterPublicView()` → render normal.
 
-**Vista comprador (`enterPublicView`):** elimina del DOM todo `[data-owner-only]`, `#ownerToolbar` y los modales `motoboys, qrCobro, flyerQr, loyalty, editMember, product, bulkPrice, settings`; vacía `loyaltyMembers`; limpia `?admin` de la URL.
-**Guardias:** un array de ~35 nombres de funciones de dueño se envuelve en `window[name]` para que no hagan nada si `!IS_OWNER_VIEW` (incluye `pushCatalogChangesToCloud` y `recordSalesFromCurrentCart`).
+**Vista comprador (`enterPublicView`):** elimina del DOM todo `[data-owner-only]`, `#ownerToolbar` y los modales `motoboys, cashRegister, qrCobro, flyerQr, loyalty, editMember, product, bulkPrice, settings`; vacía `loyaltyMembers`; limpia `?admin` de la URL.
+**Guardias:** un array de ~40 nombres de funciones de dueño se envuelve en `window[name]` para que no hagan nada si `!IS_OWNER_VIEW` (incluye `pushCatalogChangesToCloud`, `recordSalesFromCurrentCart`, `openCashRegisterModal`, `sendMotoboyTripWhatsApp`, etc.).
 Para agregar una función de dueño nueva: sumarla a esa lista y marcar su botón con `data-owner-only`.
 
 **Acceso dueño:** modal creado dinámicamente (no existe en el HTML público). PIN → `SHA-256('flanders-owner|' + pin)` en `localStorage` `flanders_owner_pin_v1` (fallback FNV-1a si no hay `crypto.subtle`). Sesión: `flanders_owner_session_v1` (timestamp de vencimiento, 30 días, se renueva). Bloqueo: `flanders_owner_lock_v1` `{n, until}` (5 intentos → 5 min).
 
 **Estado del local:** `settings.storeStatus ∈ {open, pickup, closed}` (`getStoreStatus()` deriva de `isOpen` si no existe). Nube: campo 4 de `flanders_cfg_v1` → `'1'`/`'2'`/`'0'`. Carrito: `enforceStoreStatusInCart()` (pickup) y bloqueo del botón de envío en `updateCartTotalsUI()`/`sendOrderToWhatsApp()` (closed). El dueño queda exento.
 
-**Límite de seguridad (importante):** esto protege la *interfaz*. Al ser un sitio estático, un cliente técnico puede leer el código. Lo que cualquiera podría escribir es la sincronización en la nube (`keyvalue.immanuel.co`, sin autenticación). Ver `HANDOFF_AGENTE.md` §3 para la solución propuesta (firma ECDSA de los datos).
+**Seguridad de la nube (ECDSA P-256):**
+- La clave pública `CLOUD_PUBLIC_KEY` está embebida en el cliente.
+- La clave privada `FLK1-...` se almacena únicamente en `localStorage['flanders_owner_sign_key_v1']` del dispositivo del dueño.
+- `pushCatalogChangesToCloud()` construye el payload canónico `cfg|st1|st2|pr1|pr2|pr3|pr4`, lo firma con `signCloudPayload()` y publica la firma en `flanders_sig_v1`.
+- `pullCatalogChangesFromCloud()` verifica criptográficamente `verifyCloudSignature(canonical, sigRaw)` antes de aplicar cualquier dato recibido desde `keyvalue.immanuel.co`. Si alguien altera el WhatsApp, alias o precios sin la clave privada, la firma falla y los clientes ignoran el payload.
 
-**Tests:** `scratch/test_vistas.js`, `test_flujos.js`, `test_pin.js` (Chrome headless).
+**Tests:** `scratch/test_vistas.js`, `scratch/test_flujos.js`, `scratch/test_pin.js`, `scratch/test_firma.js`, `scratch/test_motos_caja.js` (Chrome headless).

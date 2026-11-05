@@ -6,6 +6,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0D0E12">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
   <title>Maldito Flanders · Delivery de Bebidas, Promos & Kiosco</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -226,15 +229,18 @@
             <span>🔒 Salir de Dueño</span>
           </button>
         </div>
-        <div class="grid grid-cols-3 gap-1.5">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
           <button onclick="copyFullWhatsAppPriceList()" class="py-1.5 px-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
-            <span>📋 Copiar Lista WA</span>
+            <span>📋 Lista WA</span>
           </button>
           <button onclick="openBulkPriceModal()" class="py-1.5 px-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
             <span>⚡ Aumentar %</span>
           </button>
           <button data-owner-only onclick="openMotoboysModal()" class="py-1.5 px-2 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
             <span>🛵 Caja Motos</span>
+          </button>
+          <button data-owner-only onclick="openCashRegisterModal()" class="py-1.5 px-2 bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/40 text-violet-300 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1">
+            <span>📊 Cierre Caja</span>
           </button>
         </div>
       </div>
@@ -488,12 +494,22 @@
             <span id="moto1TitleLabel" class="text-xs font-black text-emerald-400 truncate">🛵 Moto 1</span>
             <span id="moto1TripsCount" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black">0 viajes</span>
           </div>
-          <div>
-            <span class="text-[10px] text-zinc-400 block">Efectivo en mano a rendir:</span>
+          <div class="space-y-1 pt-0.5">
+            <div class="flex items-center justify-between text-[10px] text-zinc-400">
+              <span>Cambio inicial ($):</span>
+              <input type="number" id="moto1InitialCashInput" oninput="setMotoInitialCash(1, this.value)" placeholder="0" class="w-20 px-1.5 py-0.5 rounded-lg bg-[#14161D] border border-zinc-700 text-right text-[11px] font-black text-white">
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-zinc-400">
+              <span>Cobrado viajes:</span>
+              <span id="moto1CollectedCash" class="font-bold text-zinc-200">$0</span>
+            </div>
+          </div>
+          <div class="border-t border-zinc-800 pt-1">
+            <span class="text-[10px] text-emerald-300 font-bold block">Total exacto a rendir:</span>
             <span id="moto1CashTotal" class="text-base font-black text-white">$0</span>
           </div>
           <div class="text-[10px] text-zinc-400 flex justify-between border-t border-zinc-800 pt-1">
-            <span>Envíos ($):</span>
+            <span>Envíos cadete:</span>
             <span id="moto1FeesTotal" class="font-bold text-amber-400">$0</span>
           </div>
           <button onclick="settleMotoboy(1)" class="w-full mt-1 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 rounded-xl text-[10px] font-black">
@@ -507,12 +523,22 @@
             <span id="moto2TitleLabel" class="text-xs font-black text-amber-400 truncate">🛵 Moto 2</span>
             <span id="moto2TripsCount" class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-black">0 viajes</span>
           </div>
-          <div>
-            <span class="text-[10px] text-zinc-400 block">Efectivo en mano a rendir:</span>
+          <div class="space-y-1 pt-0.5">
+            <div class="flex items-center justify-between text-[10px] text-zinc-400">
+              <span>Cambio inicial ($):</span>
+              <input type="number" id="moto2InitialCashInput" oninput="setMotoInitialCash(2, this.value)" placeholder="0" class="w-20 px-1.5 py-0.5 rounded-lg bg-[#14161D] border border-zinc-700 text-right text-[11px] font-black text-white">
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-zinc-400">
+              <span>Cobrado viajes:</span>
+              <span id="moto2CollectedCash" class="font-bold text-zinc-200">$0</span>
+            </div>
+          </div>
+          <div class="border-t border-zinc-800 pt-1">
+            <span class="text-[10px] text-amber-300 font-bold block">Total exacto a rendir:</span>
             <span id="moto2CashTotal" class="text-base font-black text-white">$0</span>
           </div>
           <div class="text-[10px] text-zinc-400 flex justify-between border-t border-zinc-800 pt-1">
-            <span>Envíos ($):</span>
+            <span>Envíos cadete:</span>
             <span id="moto2FeesTotal" class="font-bold text-amber-400">$0</span>
           </div>
           <button onclick="settleMotoboy(2)" class="w-full mt-1 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 rounded-xl text-[10px] font-black">
@@ -522,22 +548,26 @@
       </div>
 
       <!-- Formulario Rápido para Asignar Viaje a una Moto -->
-      <div class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-3.5 space-y-2.5">
+      <div class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-3.5 space-y-2">
         <h4 class="text-xs font-black text-amber-400 uppercase tracking-wider">+ Registrar Envío que sale</h4>
         <div class="grid grid-cols-2 gap-2">
           <button type="button" id="btnSelectMoto1" onclick="selectDispatchMoto(1)" class="py-2 rounded-xl border text-xs font-black bg-emerald-500 text-zinc-950 border-emerald-400">🛵 Moto 1</button>
           <button type="button" id="btnSelectMoto2" onclick="selectDispatchMoto(2)" class="py-2 rounded-xl border text-xs font-bold bg-[#14161D] text-zinc-400 border-zinc-800">🛵 Moto 2</button>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <input type="text" id="dispatchAddress" placeholder="Dirección / Cliente" class="px-3 py-2 rounded-xl bg-[#14161D] border border-zinc-800 text-xs font-semibold text-white">
+          <input type="text" id="dispatchAddress" placeholder="Dirección exacta (p/ Maps)" class="px-3 py-2 rounded-xl bg-[#14161D] border border-zinc-800 text-xs font-semibold text-white">
           <input type="number" id="dispatchAmount" placeholder="Total a cobrar ($)" class="px-3 py-2 rounded-xl bg-[#14161D] border border-zinc-800 text-xs font-bold text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="number" id="dispatchPayWith" placeholder="Abona con $ (opcional p/ vuelto)" class="px-3 py-2 rounded-xl bg-[#14161D] border border-zinc-800 text-xs font-semibold text-white">
+          <input type="text" id="dispatchItemsSummary" placeholder="Detalle (ej: 2 promos, hielo)" class="px-3 py-2 rounded-xl bg-[#14161D] border border-zinc-800 text-xs font-semibold text-white">
         </div>
         <div class="flex items-center justify-between gap-2">
           <select id="dispatchPayType" class="flex-1 px-3 py-2 rounded-xl bg-[#14161D] border border-zinc-800 text-xs font-bold text-white">
             <option value="cash">💵 Cobra en Efectivo (Rinde caja)</option>
             <option value="transfer">💳 Ya pagó por Transferencia</option>
           </select>
-          <button onclick="addMotoboyDelivery()" class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black rounded-xl text-xs shrink-0">
+          <button onclick="addMotoboyDelivery()" class="px-3.5 py-2 bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black rounded-xl text-xs shrink-0">
             + Asignar Viaje
           </button>
         </div>
@@ -549,7 +579,33 @@
           <span class="text-[11px] font-bold uppercase text-zinc-400">Viajes Activos de la Noche</span>
           <button onclick="clearAllMotoboyDeliveries()" class="text-[10px] text-rose-400 font-bold hover:underline">Limpiar todo</button>
         </div>
-        <div id="motoboyDeliveriesList" class="space-y-1.5 max-h-52 overflow-y-auto pr-1"></div>
+        <div id="motoboyDeliveriesList" class="space-y-1.5 max-h-56 overflow-y-auto pr-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 2B: CIERRE DE CAJA Y ARQUEO DIARIO (ZETA NOCTURNO)  -->
+  <!-- ========================================================= -->
+  <div id="cashRegisterModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 modal-backdrop hidden">
+    <div class="bg-[#14161D] border border-zinc-800 text-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto no-scrollbar p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-2.5 border-b border-zinc-800">
+        <div>
+          <h3 class="text-base font-black text-white flex items-center gap-1.5">📊 Cierre de Caja y Arqueo</h3>
+          <p id="cashRegisterDateLabel" class="text-[11px] text-zinc-400">Resumen de ventas, cadetería y productos estrella</p>
+        </div>
+        <button onclick="closeCashRegisterModal()" class="w-8 h-8 rounded-full bg-zinc-800 text-zinc-300 font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <div id="cashRegisterBody" class="space-y-3"></div>
+
+      <div class="space-y-2 pt-1 border-t border-zinc-800">
+        <button onclick="sendCashRegisterWhatsApp()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-black rounded-2xl text-xs shadow-lg flex items-center justify-center gap-1.5">
+          <span>📲 Enviar Resumen de Cierre a mi WhatsApp</span>
+        </button>
+        <button onclick="resetDailyCashRegister()" class="w-full py-2.5 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-black rounded-xl text-xs">
+          🧹 Cerrar Turno y Poner Motos en Cero
+        </button>
       </div>
     </div>
   </div>
@@ -841,6 +897,16 @@
             <input type="text" id="setRewardText" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-semibold text-white">
           </div>
         </div>
+
+        <!-- Clave Privada de Firma Cloud (Seguridad ECDSA P-256) -->
+        <div class="pt-2 border-t border-zinc-800 space-y-1">
+          <div class="flex items-center justify-between">
+            <label class="block text-[10px] font-bold uppercase text-sky-400">🔑 Clave de Firma Cloud (Dueño)</label>
+            <span id="signKeyStatusBadge" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">Sin clave</span>
+          </div>
+          <input type="password" id="setOwnerSignKey" autocomplete="off" placeholder="Pegar clave FLK1-... (queda solo en este dispositivo)" class="w-full px-3 py-2 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs font-mono text-white">
+          <p class="text-[10px] text-zinc-500 leading-tight">Protege precios, stock, alias y WhatsApp en la nube contra escrituras no autorizadas.</p>
+        </div>
       </div>
 
       <button onclick="saveSettings()" class="w-full py-3 bg-amber-400 hover:bg-amber-500 text-zinc-950 font-black rounded-2xl text-xs shadow-lg">
@@ -909,7 +975,14 @@
     const OWNER_KEYS = {
       PIN: 'flanders_owner_pin_v1',         // hash SHA-256 del PIN (nunca el PIN en claro)
       SESSION: 'flanders_owner_session_v1', // timestamp de vencimiento de la sesión
-      LOCK: 'flanders_owner_lock_v1'        // intentos fallidos / bloqueo temporal
+      LOCK: 'flanders_owner_lock_v1',       // intentos fallidos / bloqueo temporal
+      SIGN: 'flanders_owner_sign_key_v1'    // clave privada ECDSA P-256 (FLK1-...) solo en dispositivo del dueño
+    };
+    const CLOUD_PUBLIC_KEY = {
+      kty: 'EC',
+      crv: 'P-256',
+      x: 'HEgq7K-7EXLI2SUiHcB33Nr7-y3-OqG91kJg-fvDnvI',
+      y: 'MRy2Gqidi3KHcg5d2-Im8XtZMmXRV1GyoFvTJpi5npg'
     };
     const OWNER_SESSION_DAYS = 30;
     const OWNER_MAX_ATTEMPTS = 5;
@@ -1287,7 +1360,7 @@
       loyaltyMembers = []; // el comprador nunca ve ni usa la lista de socios
       state.ownerMode = false;
       document.querySelectorAll('[data-owner-only]').forEach(el => el.remove());
-      ['ownerToolbar', 'motoboysModal', 'qrCobroModal', 'flyerQrModal', 'loyaltyModal',
+      ['ownerToolbar', 'motoboysModal', 'cashRegisterModal', 'qrCobroModal', 'flyerQrModal', 'loyaltyModal',
        'editMemberModal', 'productModal', 'bulkPriceModal', 'settingsModal'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.remove();
@@ -2048,6 +2121,14 @@
       applyBrandingUI();
     }
 
+    function setMotoInitialCash(motoNum, val) {
+      const num = Math.max(0, Number(val) || 0);
+      if (motoNum === 1) settings.moto1InitialCash = num;
+      if (motoNum === 2) settings.moto2InitialCash = num;
+      saveSettingsToStorage();
+      renderMotoboysDashboard();
+    }
+
     function selectDispatchMoto(num) {
       state.selectedDispatchMoto = num;
       document.getElementById('btnSelectMoto1').className = num === 1
@@ -2062,17 +2143,33 @@
       const { sum } = getCartSubtotal();
       const delFee = state.deliveryMode === 'delivery' ? (Number(settings.deliveryFee) || 1500) : 0;
       const total = sum + delFee;
-      const street = document.getElementById('orderStreet').value.trim() || document.getElementById('orderClientName').value.trim() || 'Pedido Mostrador';
+      const streetInput = document.getElementById('orderStreet').value.trim();
+      const crossInput = document.getElementById('orderCrossStreets').value.trim();
+      const clientInput = document.getElementById('orderClientName').value.trim();
+      const fullAddress = streetInput
+        ? (streetInput + (crossInput ? ` (${crossInput})` : ''))
+        : (clientInput || 'Pedido Mostrador');
+      const payWithVal = Number(document.getElementById('cashPayWithInput').value) || 0;
+      const itemsSummary = Object.entries(cart).map(([pid, qty]) => {
+        const p = products.find(x => x.id === pid);
+        return p ? `${qty}x ${p.name}` : '';
+      }).filter(Boolean).join(', ');
+      const fullSummary = itemsSummary ? `${itemsSummary} [${state.drinkTemp}]` : '';
+
       closeCartModal();
       openMotoboysModal();
-      document.getElementById('dispatchAddress').value = street;
+      document.getElementById('dispatchAddress').value = fullAddress;
       document.getElementById('dispatchAmount').value = total;
+      document.getElementById('dispatchPayWith').value = payWithVal > 0 ? payWithVal : '';
+      document.getElementById('dispatchItemsSummary').value = fullSummary;
       document.getElementById('dispatchPayType').value = state.paymentMethod;
     }
 
     function addMotoboyDelivery() {
       const address = document.getElementById('dispatchAddress').value.trim() || 'Envío Local';
       const amount = Number(document.getElementById('dispatchAmount').value) || 0;
+      const payWith = Number(document.getElementById('dispatchPayWith').value) || 0;
+      const itemsSummary = document.getElementById('dispatchItemsSummary').value.trim();
       const payType = document.getElementById('dispatchPayType').value;
 
       if (amount <= 0) {
@@ -2082,12 +2179,16 @@
 
       const now = new Date();
       const timeStr = now.toLocaleTimeString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit', hour12: false });
+      const changeNeeded = (payType === 'cash' && payWith > amount) ? (payWith - amount) : 0;
 
       motoboyDeliveries.unshift({
         id: 'via-' + Date.now(),
         moto: state.selectedDispatchMoto,
         address,
         amount,
+        payWith,
+        changeNeeded,
+        itemsSummary,
         fee: Number(settings.deliveryFee) || 1500,
         payType,
         time: timeStr
@@ -2102,9 +2203,48 @@
 
       document.getElementById('dispatchAddress').value = '';
       document.getElementById('dispatchAmount').value = '';
+      document.getElementById('dispatchPayWith').value = '';
+      document.getElementById('dispatchItemsSummary').value = '';
       saveMotoboysToStorage();
       renderMotoboysDashboard();
       showToast('🛵 Viaje asignado a Moto ' + state.selectedDispatchMoto);
+    }
+
+    function openMotoboyTripMaps(id) {
+      const d = motoboyDeliveries.find(x => x.id === id);
+      if (!d) return;
+      const cleanAddr = String(d.address || '').replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanAddr)}`;
+      window.open(mapsUrl, '_blank');
+    }
+
+    function sendMotoboyTripWhatsApp(id) {
+      const d = motoboyDeliveries.find(x => x.id === id);
+      if (!d) return;
+      const mName = d.moto === 1 ? (settings.moto1Name || 'Moto 1') : (settings.moto2Name || 'Moto 2');
+      const cleanAddr = String(d.address || '').replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanAddr)}`;
+
+      let msg = `🛵 *VIAJE ASIGNADO · ${mName.toUpperCase()}*\n`;
+      msg += `🕒 *Hora:* ${d.time} hs\n`;
+      msg += `📍 *Destino:* ${d.address}\n`;
+      msg += `🗺️ *Abrir en GPS:* ${mapsUrl}\n`;
+      if (d.itemsSummary) {
+        msg += `📦 *Pedido:* ${d.itemsSummary}\n`;
+      }
+      msg += `\n💰 *Total del Pedido:* ${formatARS(d.amount)}\n`;
+      if (d.payType === 'cash') {
+        msg += `💵 *Estado:* COBRAR EN EFECTIVO\n`;
+        if (d.payWith && d.payWith > d.amount) {
+          msg += `⚠️ *Paga con:* ${formatARS(d.payWith)} 👉 *LLEVAR VUELTO: ${formatARS(d.payWith - d.amount)}*\n`;
+        } else {
+          msg += `✓ *Cambio:* Paga justo\n`;
+        }
+      } else {
+        msg += `💳 *Estado:* YA PAGADO POR TRANSFERENCIA (Solo entregar)\n`;
+      }
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
     function renderMotoboysDashboard() {
@@ -2112,9 +2252,18 @@
         const list = motoboyDeliveries.filter(d => d.moto === m);
         const cashSum = list.filter(d => d.payType === 'cash').reduce((a, b) => a + b.amount, 0);
         const feeSum = list.reduce((a, b) => a + (b.fee || 0), 0);
+        const initialCash = Number(settings[`moto${m}InitialCash`]) || 0;
+        const totalToSettle = cashSum + initialCash;
+
+        const initInput = document.getElementById(`moto${m}InitialCashInput`);
+        if (initInput && document.activeElement !== initInput) {
+          initInput.value = initialCash > 0 ? initialCash : '';
+        }
+        const collectedEl = document.getElementById(`moto${m}CollectedCash`);
+        if (collectedEl) collectedEl.textContent = formatARS(cashSum);
 
         document.getElementById(`moto${m}TripsCount`).textContent = `${list.length} viaje${list.length === 1 ? '' : 's'}`;
-        document.getElementById(`moto${m}CashTotal`).textContent = formatARS(cashSum);
+        document.getElementById(`moto${m}CashTotal`).textContent = formatARS(totalToSettle);
         document.getElementById(`moto${m}FeesTotal`).textContent = formatARS(feeSum);
       }
 
@@ -2125,20 +2274,28 @@
       }
 
       container.innerHTML = motoboyDeliveries.map(d => `
-        <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs">
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-1.5">
-              <span class="px-2 py-0.5 rounded-md font-black text-[10px] ${d.moto === 1 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
-                Moto ${d.moto}
-              </span>
-              <span class="text-zinc-500 font-mono text-[10px]">${d.time}</span>
-              <span class="font-extrabold text-white truncate">${d.address}</span>
+        <div class="p-2.5 rounded-xl bg-[#0D0E12] border border-zinc-800 text-xs space-y-1.5">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="px-2 py-0.5 rounded-md font-black text-[10px] ${d.moto === 1 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
+                  Moto ${d.moto}
+                </span>
+                <span class="text-zinc-500 font-mono text-[10px]">${d.time}</span>
+                <span class="font-extrabold text-white break-words">${d.address}</span>
+              </div>
+              ${d.itemsSummary ? `<p class="text-[10px] text-zinc-400 mt-0.5 break-words">📦 ${d.itemsSummary}</p>` : ''}
+              <p class="text-[11px] mt-0.5 font-bold ${d.payType === 'cash' ? 'text-emerald-400' : 'text-sky-400'}">
+                ${formatARS(d.amount)} · ${d.payType === 'cash' ? '💵 Efectivo (rinde)' : '💳 Transferido'}
+                ${d.changeNeeded > 0 ? `<span class="text-amber-300 font-black ml-1">(Vuelto: ${formatARS(d.changeNeeded)})</span>` : ''}
+              </p>
             </div>
-            <p class="text-[11px] mt-0.5 font-bold ${d.payType === 'cash' ? 'text-emerald-400' : 'text-sky-400'}">
-              ${formatARS(d.amount)} · ${d.payType === 'cash' ? '💵 Efectivo (rinde)' : '💳 Transferido'}
-            </p>
+            <div class="flex items-center gap-1 shrink-0">
+              <button onclick="openMotoboyTripMaps('${d.id}')" title="Abrir en Google Maps" class="px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-black text-[10px] border border-zinc-700">📍 Maps</button>
+              <button onclick="sendMotoboyTripWhatsApp('${d.id}')" title="Mandar ticket por WhatsApp al cadete" class="px-2 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-black text-[10px] border border-emerald-500/40">📲 WA</button>
+              <button onclick="removeMotoboyDelivery('${d.id}')" class="text-zinc-500 hover:text-rose-400 px-1.5 font-bold">✕</button>
+            </div>
           </div>
-          <button onclick="removeMotoboyDelivery('${d.id}')" class="text-zinc-500 hover:text-rose-400 px-2 font-bold">✕</button>
         </div>
       `).join('');
     }
@@ -2151,8 +2308,11 @@
 
     function settleMotoboy(motoNum) {
       const mName = motoNum === 1 ? settings.moto1Name : settings.moto2Name;
-      if (!confirm(`¿Confirmás que ${mName} ya rindió su efectivo de la noche? Se pondrá su cuenta en cero.`)) return;
+      if (!confirm(`¿Confirmás que ${mName} ya rindió su efectivo de la noche? Se pondrá su cuenta y cambio inicial en cero.`)) return;
       motoboyDeliveries = motoboyDeliveries.filter(d => d.moto !== motoNum);
+      if (motoNum === 1) settings.moto1InitialCash = 0;
+      if (motoNum === 2) settings.moto2InitialCash = 0;
+      saveSettingsToStorage();
       saveMotoboysToStorage();
       renderMotoboysDashboard();
       showToast(`✅ Caja de ${mName} rendida y en cero`);
@@ -2161,8 +2321,178 @@
     function clearAllMotoboyDeliveries() {
       if (!confirm('¿Limpiar todos los viajes de la noche de ambas motos?')) return;
       motoboyDeliveries = [];
+      settings.moto1InitialCash = 0;
+      settings.moto2InitialCash = 0;
+      saveSettingsToStorage();
       saveMotoboysToStorage();
       renderMotoboysDashboard();
+    }
+
+    // =========================================================
+    // CIERRE DE CAJA DIARIO Y ARQUEO (ZETA NOCTURNO)
+    // =========================================================
+    function getCashRegisterStats() {
+      const todayStr = new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
+      const todaySales = salesHistory.filter(s => s.date === todayStr);
+      const sourceSales = todaySales.length > 0 ? todaySales : salesHistory;
+      const periodLabel = todaySales.length > 0 ? `Hoy (${todayStr})` : `Acumulado (${salesHistory.length} registros)`;
+
+      const uniqueOrders = new Set(sourceSales.map(s => s.orderId || s.id)).size;
+      const totalUnits = sourceSales.reduce((acc, s) => acc + (Number(s.qty) || 1), 0);
+      const totalSalesAmount = sourceSales.reduce((acc, s) => acc + ((Number(s.unitPrice) || 0) * (Number(s.qty) || 1)), 0);
+
+      const m1Trips = motoboyDeliveries.filter(d => d.moto === 1);
+      const m2Trips = motoboyDeliveries.filter(d => d.moto === 2);
+      const m1Cash = m1Trips.filter(d => d.payType === 'cash').reduce((a, b) => a + b.amount, 0);
+      const m2Cash = m2Trips.filter(d => d.payType === 'cash').reduce((a, b) => a + b.amount, 0);
+      const m1Transfer = m1Trips.filter(d => d.payType === 'transfer').reduce((a, b) => a + b.amount, 0);
+      const m2Transfer = m2Trips.filter(d => d.payType === 'transfer').reduce((a, b) => a + b.amount, 0);
+      const m1Init = Number(settings.moto1InitialCash) || 0;
+      const m2Init = Number(settings.moto2InitialCash) || 0;
+      const totalFees = motoboyDeliveries.reduce((a, b) => a + (b.fee || 0), 0);
+
+      const prodMap = {};
+      sourceSales.forEach(s => {
+        const key = s.productId || s.productName;
+        if (!prodMap[key]) {
+          prodMap[key] = { name: s.productName || 'Producto', qty: 0, revenue: 0 };
+        }
+        const q = Number(s.qty) || 1;
+        prodMap[key].qty += q;
+        prodMap[key].revenue += q * (Number(s.unitPrice) || 0);
+      });
+      const topProducts = Object.values(prodMap).sort((a, b) => b.qty - a.qty).slice(0, 5);
+
+      return {
+        todayStr,
+        periodLabel,
+        uniqueOrders,
+        totalUnits,
+        totalSalesAmount,
+        m1Name: settings.moto1Name || 'Moto 1',
+        m2Name: settings.moto2Name || 'Moto 2',
+        m1TripsCount: m1Trips.length,
+        m2TripsCount: m2Trips.length,
+        m1Cash,
+        m2Cash,
+        m1Transfer,
+        m2Transfer,
+        m1Init,
+        m2Init,
+        m1Settle: m1Cash + m1Init,
+        m2Settle: m2Cash + m2Init,
+        totalMotoCash: m1Cash + m2Cash,
+        totalMotoTransfer: m1Transfer + m2Transfer,
+        totalFees,
+        topProducts
+      };
+    }
+
+    function openCashRegisterModal() {
+      renderCashRegisterSummary();
+      document.getElementById('cashRegisterModal').classList.remove('hidden');
+    }
+
+    function closeCashRegisterModal() {
+      document.getElementById('cashRegisterModal').classList.add('hidden');
+    }
+
+    function renderCashRegisterSummary() {
+      const st = getCashRegisterStats();
+      document.getElementById('cashRegisterDateLabel').textContent = `Período: ${st.periodLabel}`;
+      const body = document.getElementById('cashRegisterBody');
+
+      const topHtml = st.topProducts.length > 0
+        ? st.topProducts.map((p, i) => `
+            <div class="flex items-center justify-between text-xs py-1 border-b border-zinc-800/60 last:border-0">
+              <span class="font-bold text-zinc-200 truncate pr-2">${i + 1}. ${p.name}</span>
+              <span class="font-black text-amber-400 shrink-0">${p.qty} u. (${formatARS(p.revenue)})</span>
+            </div>
+          `).join('')
+        : '<p class="text-xs text-zinc-500">Sin ventas registradas todavía en este turno.</p>';
+
+      body.innerHTML = `
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-2.5 text-center">
+            <span class="text-[10px] text-zinc-400 font-bold uppercase block">Ventas Catálogo</span>
+            <span class="text-sm font-black text-amber-400 mt-0.5 block">${formatARS(st.totalSalesAmount)}</span>
+          </div>
+          <div class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-2.5 text-center">
+            <span class="text-[10px] text-zinc-400 font-bold uppercase block">Pedidos</span>
+            <span class="text-sm font-black text-white mt-0.5 block">${st.uniqueOrders}</span>
+          </div>
+          <div class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-2.5 text-center">
+            <span class="text-[10px] text-zinc-400 font-bold uppercase block">Unidades</span>
+            <span class="text-sm font-black text-emerald-400 mt-0.5 block">${st.totalUnits}</span>
+          </div>
+        </div>
+
+        <div class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-3 space-y-1.5 text-xs">
+          <div class="font-black text-amber-400 uppercase text-[10px] tracking-wider">🛵 Arqueo de Motos Activas</div>
+          <div class="flex justify-between text-zinc-300">
+            <span>💵 Efectivo cobrado en viajes:</span>
+            <span class="font-black text-emerald-400">${formatARS(st.totalMotoCash)}</span>
+          </div>
+          <div class="flex justify-between text-zinc-300">
+            <span>💳 Transferencias en viajes:</span>
+            <span class="font-black text-sky-400">${formatARS(st.totalMotoTransfer)}</span>
+          </div>
+          <div class="flex justify-between text-zinc-400 text-[11px] pt-1 border-t border-zinc-800">
+            <span>🛵 ${st.m1Name} (${st.m1TripsCount} v. + cambio ${formatARS(st.m1Init)}):</span>
+            <span class="font-black text-white">Rinde ${formatARS(st.m1Settle)}</span>
+          </div>
+          <div class="flex justify-between text-zinc-400 text-[11px]">
+            <span>🛵 ${st.m2Name} (${st.m2TripsCount} v. + cambio ${formatARS(st.m2Init)}):</span>
+            <span class="font-black text-white">Rinde ${formatARS(st.m2Settle)}</span>
+          </div>
+          <div class="flex justify-between text-zinc-400 text-[11px] pt-1 border-t border-zinc-800">
+            <span>📦 Total envíos de cadetes:</span>
+            <span class="font-bold text-amber-300">${formatARS(st.totalFees)}</span>
+          </div>
+        </div>
+
+        <div class="bg-[#0D0E12] border border-zinc-800 rounded-2xl p-3 space-y-1">
+          <div class="font-black text-amber-400 uppercase text-[10px] tracking-wider mb-1">🔥 Top 5 Más Vendidos</div>
+          ${topHtml}
+        </div>
+      `;
+    }
+
+    function sendCashRegisterWhatsApp() {
+      const st = getCashRegisterStats();
+      let msg = `📊 *CIERRE DE CAJA · ${(settings.businessName || 'MALDITO FLANDERS').toUpperCase()}*\n`;
+      msg += `📅 *Período:* ${st.periodLabel}\n\n`;
+      msg += `💰 *Ventas Catálogo:* ${formatARS(st.totalSalesAmount)} (${st.uniqueOrders} pedidos · ${st.totalUnits} u.)\n\n`;
+      msg += `🛵 *RENDICIÓN DE MOTOS ACTIVAS:*\n`;
+      msg += `• ${st.m1Name}: ${st.m1TripsCount} viajes | Cobró efvo ${formatARS(st.m1Cash)} + Cambio ${formatARS(st.m1Init)} 👉 *RINDE: ${formatARS(st.m1Settle)}*\n`;
+      msg += `• ${st.m2Name}: ${st.m2TripsCount} viajes | Cobró efvo ${formatARS(st.m2Cash)} + Cambio ${formatARS(st.m2Init)} 👉 *RINDE: ${formatARS(st.m2Settle)}*\n`;
+      msg += `• Transferencias en viajes: ${formatARS(st.totalMotoTransfer)}\n`;
+      msg += `• Total envíos cadetes: ${formatARS(st.totalFees)}\n`;
+
+      if (st.topProducts.length > 0) {
+        msg += `\n🔥 *PRODUCTOS ESTRELLA:*\n`;
+        st.topProducts.forEach((p, i) => {
+          msg += `${i + 1}. ${p.name}: ${p.qty} u. (${formatARS(p.revenue)})\n`;
+        });
+      }
+
+      const phone = (settings.whatsappPhone || '').replace(/\D/g, '');
+      const waUrl = phone
+        ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+        : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
+    }
+
+    function resetDailyCashRegister() {
+      if (!confirm('¿Cerrar el turno actual? Se pondrán en cero los viajes activos y el cambio inicial de ambas motos (el ranking histórico de productos se conserva).')) return;
+      motoboyDeliveries = [];
+      settings.moto1InitialCash = 0;
+      settings.moto2InitialCash = 0;
+      saveSettingsToStorage();
+      saveMotoboysToStorage();
+      renderCashRegisterSummary();
+      applyBrandingUI();
+      showToast('🧹 Turno cerrado y motos en cero');
     }
 
     // =========================================================
@@ -2621,6 +2951,17 @@
       document.getElementById('setMoto2Name').value = settings.moto2Name || 'Moto 2 (Repartidor 2)';
       document.getElementById('setTargetStamps').value = settings.targetStamps || 6;
       document.getElementById('setRewardText').value = settings.rewardText || '';
+      const skEl = document.getElementById('setOwnerSignKey');
+      const skBadge = document.getElementById('signKeyStatusBadge');
+      const savedSk = localStorage.getItem(OWNER_KEYS.SIGN) || '';
+      if (skEl) skEl.value = savedSk;
+      if (skBadge) {
+        const ok = savedSk.startsWith('FLK1-') && savedSk.length > 20;
+        skBadge.textContent = ok ? '🟢 Firma ECDSA Activa' : '⚪ Sin clave';
+        skBadge.className = ok
+          ? 'text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+          : 'text-[9px] font-black px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400';
+      }
       document.getElementById('settingsModal').classList.remove('hidden');
     }
 
@@ -2642,6 +2983,15 @@
       settings.moto2Name = document.getElementById('setMoto2Name').value.trim() || 'Moto 2';
       settings.targetStamps = Number(document.getElementById('setTargetStamps').value) || 6;
       settings.rewardText = document.getElementById('setRewardText').value.trim() || 'Premio Club Maldito Flanders';
+      const skInput = document.getElementById('setOwnerSignKey');
+      if (skInput) {
+        const skVal = skInput.value.trim();
+        if (skVal) {
+          localStorage.setItem(OWNER_KEYS.SIGN, skVal);
+        } else {
+          localStorage.removeItem(OWNER_KEYS.SIGN);
+        }
+      }
 
       saveSettingsToStorage();
       applyBrandingUI();
@@ -2698,7 +3048,8 @@
         products,
         motoboyDeliveries,
         loyaltyMembers,
-        salesHistory
+        salesHistory,
+        ownerSignKey: localStorage.getItem(OWNER_KEYS.SIGN) || undefined
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -2725,6 +3076,9 @@
             salesHistory = data.salesHistory;
             saveSalesToStorage();
             recalculateAllProductSalesCounts();
+          }
+          if (typeof data.ownerSignKey === 'string' && data.ownerSignKey.startsWith('FLK1-')) {
+            localStorage.setItem(OWNER_KEYS.SIGN, data.ownerSignKey.trim());
           }
           saveSettingsToStorage();
           saveProducts();
@@ -2780,8 +3134,50 @@
       }
     }
 
+    function b64UrlFromBytes(bytes) {
+      let bin = '';
+      const arr = new Uint8Array(bytes);
+      for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+      return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function bytesFromB64Url(str) {
+      const b64 = String(str).replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((String(str).length + 3) % 4);
+      const bin = atob(b64);
+      const out = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+      return out;
+    }
+
+    async function signCloudPayload(canonicalStr) {
+      try {
+        const rawKey = (localStorage.getItem(OWNER_KEYS.SIGN) || '').trim();
+        if (!rawKey.startsWith('FLK1-') || !window.crypto || !window.crypto.subtle) return null;
+        const d = rawKey.slice(5).trim();
+        const jwk = { ...CLOUD_PUBLIC_KEY, d, key_ops: ['sign'], ext: true };
+        const privKey = await window.crypto.subtle.importKey('jwk', jwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+        const sigBuf = await window.crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, privKey, new TextEncoder().encode(canonicalStr));
+        return b64UrlFromBytes(sigBuf);
+      } catch (e) {
+        console.warn('Sign cloud error:', e);
+        return null;
+      }
+    }
+
+    async function verifyCloudSignature(canonicalStr, sigB64Url) {
+      try {
+        if (!sigB64Url || !window.crypto || !window.crypto.subtle) return false;
+        const pubKey = await window.crypto.subtle.importKey('jwk', CLOUD_PUBLIC_KEY, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+        const sigBytes = bytesFromB64Url(sigB64Url);
+        if (sigBytes.length !== 64) return false;
+        return await window.crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, pubKey, sigBytes, new TextEncoder().encode(canonicalStr));
+      } catch (e) {
+        return false;
+      }
+    }
+
     async function pushCatalogChangesToCloud() {
-      // 1. Sincronizar Ajustes operativos (minOrder, deliveryFee, stampMin, isOpen, alias, phone)
+      // 1. Sincronizar Ajustes operativos (minOrder, deliveryFee, stampMin, storeStatus, alias, phone)
       const cfgStr = [
         settings.minOrderAmount || 7000,
         settings.deliveryFee || 1500,
@@ -2790,14 +3186,11 @@
         (settings.paymentAlias || 'malditoflanders.mp').replace(/~/g, ''),
         (settings.whatsappPhone || '').replace(/[^0-9]/g, '')
       ].join('~');
-      await kvSet('flanders_cfg_v1', cfgStr);
 
       // 2. Sincronizar productos Sin Stock
       const outIds = products.filter(p => p.available === false).map(p => p.id);
       const stockChunk1 = outIds.slice(0, 22).join('.') || 'NONE';
       const stockChunk2 = outIds.slice(22, 44).join('.') || 'NONE';
-      await kvSet('flanders_sin_stock_1', stockChunk1);
-      await kvSet('flanders_sin_stock_2', stockChunk2);
 
       // 3. Sincronizar precios modificados respecto del default
       const diffs = [];
@@ -2807,23 +3200,57 @@
           diffs.push(`${p.id}:${p.price}`);
         }
       });
+      const priceChunks = [];
       for (let i = 0; i < 4; i++) {
-        const slice = diffs.slice(i * 12, (i + 1) * 12).join('.') || 'NONE';
-        await kvSet('flanders_prices_' + (i + 1), slice);
+        priceChunks.push(diffs.slice(i * 12, (i + 1) * 12).join('.') || 'NONE');
       }
+
+      // 4. Firma criptográfica ECDSA P-256 sobre el estado completo
+      const canonical = [cfgStr, stockChunk1, stockChunk2, ...priceChunks].join('|');
+      const sig = await signCloudPayload(canonical);
+      if (!sig) {
+        console.warn('Nube: sin clave privada de firma activa en este dispositivo (Ajustes > Clave de Firma).');
+        return;
+      }
+
+      await kvSet('flanders_cfg_v1', cfgStr);
+      await kvSet('flanders_sin_stock_1', stockChunk1);
+      await kvSet('flanders_sin_stock_2', stockChunk2);
+      for (let i = 0; i < 4; i++) {
+        await kvSet('flanders_prices_' + (i + 1), priceChunks[i]);
+      }
+      await kvSet('flanders_sig_v1', sig);
     }
 
     async function pullCatalogChangesFromCloud() {
       try {
-        const [cfgRaw, st1, st2, pr1, pr2, pr3, pr4] = await Promise.all([
+        const [cfgRaw, st1, st2, pr1, pr2, pr3, pr4, sigRaw] = await Promise.all([
           kvGet('flanders_cfg_v1'),
           kvGet('flanders_sin_stock_1'),
           kvGet('flanders_sin_stock_2'),
           kvGet('flanders_prices_1'),
           kvGet('flanders_prices_2'),
           kvGet('flanders_prices_3'),
-          kvGet('flanders_prices_4')
+          kvGet('flanders_prices_4'),
+          kvGet('flanders_sig_v1')
         ]);
+
+        if (!cfgRaw) return;
+        const canonical = [
+          cfgRaw,
+          st1 || 'NONE',
+          st2 || 'NONE',
+          pr1 || 'NONE',
+          pr2 || 'NONE',
+          pr3 || 'NONE',
+          pr4 || 'NONE'
+        ].join('|');
+
+        const sigValid = await verifyCloudSignature(canonical, sigRaw);
+        if (!sigValid) {
+          console.warn('Cloud pull rechazado: firma criptográfica ausente o inválida.');
+          return;
+        }
 
         if (cfgRaw && cfgRaw.includes('~')) {
           const parts = cfgRaw.split('~');
@@ -2879,8 +3306,10 @@
     [
       'toggleOwnerMode', 'openSettingsModal', 'saveSettings', 'handleLogoUpload', 'removeBusinessLogo',
       'exportBackupJSON', 'importBackupJSON', 'resetCatalogToOriginal',
-      'openMotoboysModal', 'dispatchCurrentCartToMotoboy', 'addMotoboyDelivery', 'removeMotoboyDelivery',
+      'openMotoboysModal', 'setMotoInitialCash', 'dispatchCurrentCartToMotoboy', 'addMotoboyDelivery',
+      'openMotoboyTripMaps', 'sendMotoboyTripWhatsApp', 'removeMotoboyDelivery',
       'settleMotoboy', 'clearAllMotoboyDeliveries',
+      'openCashRegisterModal', 'sendCashRegisterWhatsApp', 'resetDailyCashRegister',
       'openQrCobroModal', 'openFlyerQrModal', 'openLoyaltyModal', 'addLoyaltyMember', 'changeMemberStamps',
       'shareMemberPassWA', 'openEditMemberModal', 'saveEditedMember', 'deleteLoyaltyMember',
       'openNewProductModal', 'openEditProductModal', 'saveProductFromModal', 'deleteProduct',
@@ -2917,6 +3346,9 @@
       setInterval(updateArgClock, 30000);
       checkPublicPassURL();
       pullCatalogChangesFromCloud();
+      if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      }
     });
   </script>
 </body>
