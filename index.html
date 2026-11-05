@@ -1010,11 +1010,33 @@
     };
 
     // =========================================================
-    // FORMATOS ARGENTINOS (ARS $ Y HORA 24HS GMT-3)
+    // FORMATOS ARGENTINOS (ARS $, HORA 24HS GMT-3 Y WHATSAPP)
     // =========================================================
     function formatARS(amount) {
       const n = Math.round(Number(amount) || 0);
       return '$' + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function formatArgentineWhatsApp(phoneRaw) {
+      let p = String(phoneRaw || '').replace(/\D/g, '');
+      if (!p) return '';
+      if (p.startsWith('549')) return p;
+      if (p.startsWith('54')) p = p.slice(2);
+      if (p.startsWith('0')) p = p.slice(1);
+      p = p.replace(/^(\d{2,4})15(\d{6,8})$/, '$1$2');
+      if (p.startsWith('15') && p.length === 10) p = p.slice(2);
+      if (p.length === 10) return '549' + p;
+      if (!p.startsWith('549')) return '549' + p;
+      return p;
+    }
+
+    function openWhatsAppChat(phoneRaw, text) {
+      const phone = formatArgentineWhatsApp(phoneRaw);
+      const enc = encodeURIComponent(text);
+      const url = phone
+        ? `https://api.whatsapp.com/send?phone=${phone}&text=${enc}`
+        : `https://api.whatsapp.com/send?text=${enc}`;
+      window.open(url, '_blank');
     }
 
     function updateArgClock() {
@@ -2078,11 +2100,10 @@
         msg += `\n⭐ *Club Fidelidad:* ¡Esta compra supera los ${formatARS(stampMin)} y suma +1 Sello!`;
       }
 
-      const phone = (settings.whatsappPhone || '').replace(/\D/g, '');
-      const waUrl = phone
-        ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
-        : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-      window.open(waUrl, '_blank');
+      if (!settings.whatsappPhone) {
+        showToast('⚠️ Falta configurar el WhatsApp del local en Ajustes', '⚠️');
+      }
+      openWhatsAppChat(settings.whatsappPhone, msg);
 
       // Registrar venta en historial y actualizar ranking de productos
       recordSalesFromCurrentCart('whatsapp', clientName);
@@ -2244,7 +2265,7 @@
         msg += `💳 *Estado:* YA PAGADO POR TRANSFERENCIA (Solo entregar)\n`;
       }
 
-      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+      openWhatsAppChat('', msg);
     }
 
     function renderMotoboysDashboard() {
@@ -2476,11 +2497,7 @@
         });
       }
 
-      const phone = (settings.whatsappPhone || '').replace(/\D/g, '');
-      const waUrl = phone
-        ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
-        : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-      window.open(waUrl, '_blank');
+      openWhatsAppChat(settings.whatsappPhone, msg);
     }
 
     function resetDailyCashRegister() {
@@ -2796,9 +2813,7 @@
       const target = settings.targetStamps || 6;
       const passUrl = `${window.location.origin}${window.location.pathname}?pass=${encodeURIComponent(m.id)}&name=${encodeURIComponent(m.name)}&stamps=${m.stamps}`;
       const msg = `🍻 ¡Hola *${m.name}*! Acá tenés tu Tarjeta Digital de *Maldito Flanders*:\n\n⭐ Sellos acumulados: *${m.stamps} de ${target}*\n🎁 Premio: ${settings.rewardText}\n\n📲 Mirá tu pase digital acá:\n${passUrl}`;
-      const cleanPhone = (m.phone || '').replace(/\D/g, '');
-      const waUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-      window.open(waUrl, '_blank');
+      openWhatsAppChat(m.phone, msg);
     }
 
     function renderLoyaltyMembers() {
