@@ -46,11 +46,9 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .modal-backdrop { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-    @keyframes pulseSubtle {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.02); }
+    .pulse-cart {
+      /* Pulido Anti-VibeCoding: sin pulsación infinita molesta */
     }
-    .pulse-cart { animation: pulseSubtle 2s infinite ease-in-out; }
     @media print {
       body * { visibility: hidden; }
       #printableQrArea, #printableQrArea * { visibility: visible; }
@@ -65,7 +63,7 @@
   <!-- ========================================================= -->
   <div id="publicPassView" class="hidden min-h-screen w-full max-w-md mx-auto p-5 flex flex-col items-center justify-center">
     <div class="w-full bg-[#14161D] border-2 border-amber-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5 relative overflow-hidden">
-      <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-amber-400 to-rose-500 p-0.5 mx-auto shadow-lg">
+      <div class="w-20 h-20 rounded-2xl bg-amber-500/20 border-2 border-amber-500/50 p-0.5 mx-auto shadow-md">
         <div id="passLogoBox" class="w-full h-full bg-[#14161D] rounded-2xl flex items-center justify-center overflow-hidden text-4xl">🍺</div>
       </div>
       <div>
@@ -126,7 +124,7 @@
       <!-- Identidad del Negocio y Botones de Acción Rápida -->
       <div class="flex items-center justify-between mt-3 gap-2">
         <div class="flex items-center gap-2.5 min-w-0">
-          <div onclick="openSettingsModal()" id="headerLogoContainer" class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 via-amber-500 to-rose-500 shadow-md flex-shrink-0 flex items-center justify-center text-2xl font-black overflow-hidden border border-amber-300/40 cursor-pointer">
+          <div onclick="openSettingsModal()" id="headerLogoContainer" class="w-12 h-12 rounded-2xl bg-[#14161D] text-amber-400 shadow-sm flex-shrink-0 flex items-center justify-center text-2xl font-black overflow-hidden border border-amber-500/40 cursor-pointer">
             <span class="select-none">🍺</span>
           </div>
           <div class="min-w-0 flex-1">
@@ -294,7 +292,7 @@
     <div id="floatingCartBar" class="hidden fixed bottom-3 left-0 right-0 z-30 px-4 max-w-lg mx-auto">
       <button 
         onclick="openCartModal()" 
-        class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-rose-500 text-zinc-950 shadow-2xl flex items-center justify-between font-black pulse-cart border-2 border-white/20"
+        class="w-full py-3.5 px-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-zinc-950 shadow-lg flex items-center justify-between font-bold border border-amber-400/40 active:scale-98 transition-all"
       >
         <div class="flex items-center gap-2.5">
           <span id="cartBarCount" class="w-7 h-7 rounded-xl bg-zinc-950 text-amber-400 text-xs font-black flex items-center justify-center">0</span>
@@ -303,7 +301,7 @@
             <span id="cartBarSubtext" class="block text-[10px] font-extrabold text-zinc-900 mt-0.5">Tocá para elegir envío o retiro</span>
           </div>
         </div>
-        <span id="cartBarTotal" class="text-base font-black text-zinc-950 bg-white/30 px-3 py-1 rounded-xl">$0</span>
+        <span id="cartBarTotal" class="text-base font-black text-zinc-950 bg-black/15 px-3 py-1 rounded-xl">$0</span>
       </button>
     </div>
 
@@ -645,7 +643,7 @@
       <button onclick="closeFlyerQrModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center text-sm font-bold">✕</button>
       
       <div id="printableQrArea" class="bg-white text-zinc-900 p-5 rounded-3xl shadow-xl border-2 border-amber-400 w-full flex flex-col items-center">
-        <div id="flyerLogoBox" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 to-rose-500 flex items-center justify-center text-2xl font-black overflow-hidden mb-2">🍺</div>
+        <div id="flyerLogoBox" class="w-14 h-14 rounded-2xl bg-amber-500 text-zinc-950 flex items-center justify-center text-2xl font-black overflow-hidden mb-2">🍺</div>
         <h3 id="flyerTitle" class="text-lg font-black text-zinc-950">Maldito Flanders</h3>
         <p class="text-[11px] font-bold text-rose-600 uppercase tracking-wider mb-3">Escaneá y pedí tus bebidas por WhatsApp</p>
         <div id="flyerQrContainer" class="w-[180px] h-[180px] flex items-center justify-center"></div>
